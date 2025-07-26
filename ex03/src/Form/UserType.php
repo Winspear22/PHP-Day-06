@@ -2,12 +2,12 @@
 
 namespace App\Form;
 
-use Symfony\Component\Validator\Constraints as Assert;
 use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class UserType extends AbstractType
 {
@@ -18,16 +18,24 @@ class UserType extends AbstractType
                 'constraints' => [
                     new Assert\NotBlank(message: 'Le nom d\'utilisateur est requis.'),
                     new Assert\Length([
-                        'min' => 4,
-                        'max' => 50,
-                        'minMessage' => 'Le nom d\'utilisateur doit contenir au moins {{ limit }} caractères.',
+                        'max' => 15,
                         'maxMessage' => 'Le nom d\'utilisateur ne peut pas dépasser {{ limit }} caractères.',
                     ]),
                 ],
                 'label' => 'Nom d’utilisateur',
-            ])            ->add('plainPassword', PasswordType::class, [
+                'attr' => ['maxlength' => 15],
+            ])
+            ->add('plainPassword', PasswordType::class, [
                 'mapped' => false,
                 'label' => 'Mot de passe',
+                'constraints' => [
+                    new Assert\NotBlank(message: 'Le mot de passe est requis.'),
+                    new Assert\Length([
+                        'max' => 20,
+                        'maxMessage' => 'Le mot de passe ne peut pas dépasser {{ limit }} caractères.',
+                    ]),
+                ],
+                'attr' => ['maxlength' => 20],
             ]);
     }
 
@@ -38,3 +46,4 @@ class UserType extends AbstractType
         ]);
     }
 }
+
