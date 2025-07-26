@@ -16,16 +16,18 @@ class Post
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\NotBlank(message: 'Le titre est requis.')]
     #[Assert\Length(
-    max: 60,
-    maxMessage: 'Le titre ne peut pas dépasser {{ limit }} caractères.'
+        max: 60,
+        maxMessage: 'Le titre ne peut pas dépasser {{ limit }} caractères.'
     )]
     #[ORM\Column(length: 60)]
-        private ?string $title = null;
+    private ?string $title = null;
 
+    #[Assert\NotBlank(message: 'Le contenu est requis.')]
     #[Assert\Length(
-    max: 150,
-    maxMessage: 'Le contenu ne peut pas dépasser {{ limit }} caractères.'
+        max: 150,
+        maxMessage: 'Le contenu ne peut pas dépasser {{ limit }} caractères.'
     )]
     #[ORM\Column(type: Types::TEXT)]
     private ?string $content = null;
