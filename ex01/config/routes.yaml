@@ -1,0 +1,23 @@
+e01_index:
+    path: /e01
+    controller: App\E01Bundle\Controller\E01Controller::index
+
+e01_sign-in:
+    path: /e01/sign-in
+    controller: App\E01Bundle\Controller\E01Controller::signIn
+
+e01_sign-up:
+    path: /e01/sign-up
+    controller: App\E01Bundle\Controller\E01Controller::signUp
+
+e01_sign-out:
+    path: /e01/sign-out
+    controller: App\E01Bundle\Controller\E01Controller::signOut
+
+e01_welcome:
+    path: /e01/welcome
+    controller: App\E01Bundle\Controller\E01Controller::welcome
+
+e01_need_auth:
+    path: /e01/need-auth
+    controller: App\E01Bundle\Controller\E01Controller::needAuth

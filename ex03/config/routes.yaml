@@ -1,0 +1,33 @@
+e03_index:
+  path: /e03
+  controller: App\Ex03Bundle\Controller\Ex03Controller::index
+
+e03_sign_out:
+  path: /e03/sign_out
+  controller: App\Ex03Bundle\Controller\Ex03Controller::signOut
+
+e03_need_auth:
+  path: /e03/need-auth
+  controller: App\Ex03Bundle\Controller\Ex03Controller::needAuth
+
+e03_sign_in:
+  path: /e03/sign_in
+  controller: App\Ex03Bundle\Controller\Ex03Controller::signIn
+
+e03_sign_up:
+  path: /e03/sign_up
+  controller: App\Ex03Bundle\Controller\Ex03Controller::createUser
+
+e03_welcome:
+  path: /e03/welcome
+  controller: App\Ex03Bundle\Controller\Ex03Controller::welcome
+
+e03_post_new:
+  path: /e03/post/new
+  controller: App\Ex03Bundle\Controller\Ex03Controller::newPost
+
+e03_post_show:
+  path: /e03/post/{id}
+  controller: App\Ex03Bundle\Controller\Ex03Controller::showPost
+  requirements:
+    id: '\d+'

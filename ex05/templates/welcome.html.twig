@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Page de bienvenue{% endblock %}
+
+{% block body %}
+<h1>Bienvenue {{ app.user.username }} !</h1>
+<a href="{{ path('e05_post_new') }}" class="btn btn-primary mb-3">Créer un nouveau post</a>
+
+{% for post in posts %}
+    <div class="post">
+        <h3>
+            <a href="{{ path('e05_post_show', {id: post.id}) }}">{{ post.title }}</a>
+        </h3>
+        <p>Auteur : {{ post.author.username }} (Réputation : {{ post.author.reputation }})</p>
+        <p>Créé le : {{ post.created|date('d/m/Y H:i') }}</p>
+        <p>👍 {{ post.votes|filter(v => v.isLike())|length }} / {{ post.votes|filter(v => not v.isLike())|length }}</p>
+        {% if post.author.id != app.user.id %}
+    <a href="{{ path('e05_post_vote', {id: post.id, type: 'like'}) }}" class="btn btn-sm btn-success">👍</a>
+    <a href="{{ path('e05_post_vote', {id: post.id, type: 'dislike'}) }}" class="btn btn-sm btn-danger">👎</a>
+{% else %}
+    <span class="badge bg-secondary">Tu ne peux pas voter pour ton post</span>
+{% endif %}
+    </div>
+{% else %}
+    <p>Aucun post pour le moment.</p>
+{% endfor %}
+
+<a href="{{ path('e05_sign_out') }}" class="btn btn-danger mt-4">Se déconnecter</a>
+<a href="{{ path('e05_index') }}" class="btn btn-danger mt-4">Retour</a>
+
+{% endblock %}

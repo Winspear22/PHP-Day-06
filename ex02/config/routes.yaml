@@ -1,0 +1,37 @@
+e02_index:
+    path: /e02
+    controller: App\Ex02Bundle\Controller\Ex02Controller::index
+
+e02_create_user:
+    path: /e02/create_user
+    controller: App\Ex02Bundle\Controller\Ex02Controller::createManyUsers
+    methods: [POST]
+
+e02_sign_up:
+    path: /e02/sign_up
+    controller: App\Ex02Bundle\Controller\Ex02Controller::createAdmin
+
+e02_sign_in:
+    path: /e02/sign_in
+    controller: App\Ex02Bundle\Controller\Ex02Controller::signIn
+
+e02_admin:
+    path: /e02/admin
+    controller: App\Ex02Bundle\Controller\Ex02Controller::admin
+
+e02_welcome:
+    path: /e02/welcome
+    controller: App\Ex02Bundle\Controller\Ex02Controller::welcome
+
+e02_sign_out:
+    path: /e02/sign_out
+    controller: App\Ex02Bundle\Controller\Ex02Controller::signOut
+
+e02_need_auth:
+    path: /e02/need-auth
+    controller: App\Ex02Bundle\Controller\Ex02Controller::needAuth
+
+e02_admin_delete:
+    path: /e02/admin/delete/{id}
+    controller: App\Ex02Bundle\Controller\Ex02Controller::deleteUser
+    methods: [POST]

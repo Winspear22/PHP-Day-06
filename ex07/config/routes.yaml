@@ -1,0 +1,41 @@
+e07_index:
+    path: /e07
+    controller: App\E07Bundle\Controller\E07Controller::index
+
+e07_sign_in:
+    path: /e07/sign_in
+    controller: App\E07Bundle\Controller\E07Controller::signIn
+
+e07_sign_out:
+    path: /e07/sign_out
+    controller: App\E07Bundle\Controller\E07Controller::signOut
+
+e07_sign_up:
+    path: /e07/sign_up
+    controller: App\E07Bundle\Controller\E07Controller::createUser
+
+e07_welcome:
+    path: /e07/welcome
+    controller: App\E07Bundle\Controller\E07Controller::welcome
+
+e07_need_auth:
+    path: /e07/need-auth
+    controller: App\E07Bundle\Controller\E07Controller::needAuth
+
+e07_post_new:
+    path: /e07/post/new
+    controller: App\E07Bundle\Controller\E07Controller::newPost
+
+e07_post_show:
+    path: /e07/post/{id}
+    controller: App\E07Bundle\Controller\E07Controller::showPost
+
+e07_post_vote:
+    path: /e07/post/{id}/vote/{type}
+    controller: App\E07Bundle\Controller\E07Controller::vote
+    requirements:
+        type: like|dislike
+
+e07_post_edit:
+    path: /e07/post/{id}/edit
+    controller: App\E07Bundle\Controller\E07Controller::edit

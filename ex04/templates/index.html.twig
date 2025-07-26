@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Page d'accueil{% endblock %}
+
+{% block body %}
+    <h1>Bienvenue sur le site de l’e04</h1>
+
+    {% if not app.user %}
+        <p>Vous êtes actuellement : <strong>{{ name }}</strong></p>
+
+        {% if elapsed is not null %}
+            <p>Dernière requête il y a : <strong>{{ elapsed }}</strong> secondes.</p>
+        {% else %}
+            <p>Bienvenue, votre session anonyme vient de commencer.</p>
+        {% endif %}
+
+        <a href="{{ path('e04_sign_in') }}" class="btn btn-primary">Se connecter</a>
+        <a href="{{ path('e04_sign_up') }}" class="btn btn-secondary">S’inscrire</a>
+    {% else %}
+        <p>Bienvenue, vous êtes connecté en tant que <strong>{{ app.user.username }}</strong>. Vous n'êtes plus en session anonyme.</p>
+
+        <a href="{{ path('e04_welcome') }}" class="btn btn-success">Aller sur la page Welcome</a>
+        <a href="{{ path('e04_sign_out') }}" class="btn btn-danger">Se déconnecter</a>
+    {% endif %}
+{% endblock %}

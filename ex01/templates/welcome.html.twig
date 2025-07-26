@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Bienvenue{% endblock %}
+
+{% block body %}
+    <div class="alert alert-success mt-4">
+        <h2>Félicitations {{ app.user.userIdentifier }}, vous êtes connecté !</h2>
+        <a href="{{ path('e01_index') }}">Retourner sur la page de connexion</a>
+        <a href="{{ path('e01_sign-out') }}" class="btn btn-danger mt-3">Se déconnecter</a>
+    </div>
+{% endblock %}

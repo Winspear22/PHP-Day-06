@@ -1,0 +1,45 @@
+security:
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+
+    # MODIFIE cette section pour utiliser Doctrine et ton User
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\User       # <-- Mets le namespace exact de ton User !
+                property: username           # <-- Ce champ doit exister dans l'entité User
+
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        main:
+            lazy: true
+            provider: app_user_provider     # <-- Ici, ton provider doit être 'app_user_provider' !
+            custom_authenticator: App\Security\UserAuthenticator
+            logout:
+                path: e01_sign-out          # <-- Ici, mets le nom de ta route de logout (voir contrôleur)
+                target: e01_index
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 604800
+                path: /
+
+    access_control:
+        # Protège la page d'accueil utilisateur (welcome) : seul un user connecté y a accès
+        - { path: ^/e01/welcome, roles: IS_AUTHENTICATED_FULLY }
+        # Ajoute ici d'autres règles au besoin
+
+when@test:
+    security:
+        password_hashers:
+            # By default, password hashers are resource intensive and take time. This is
+            # important to generate secure password hashes. In tests however, secure hashes
+            # are not important, waste resources and increase test times. The following
+            # reduces the work factor to the lowest possible values.
+            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+                algorithm: auto
+                cost: 4 # Lowest possible value for bcrypt
+                time_cost: 3 # Lowest possible value for argon
+                memory_cost: 10 # Lowest possible value for argon

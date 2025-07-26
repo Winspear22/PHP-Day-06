@@ -1,0 +1,10 @@
+{% extends 'base.html.twig' %}
+{% block title %}Erreur base de données{% endblock %}
+{% block body %}
+    <div class="alert alert-danger mt-5">
+        <h2>Erreur technique, ceci est le fichier db_others, càd qu'une erreur de bdd autre que la connexion avec la bdd est survenue;</h2>
+        <p>{{ error_message }}</p>
+        <p class="text-muted">{{ exception_message }}</p>
+        <a href="{{ path('e07_index') }}">Retourner à l'accueil</a>
+    </div>
+{% endblock %}

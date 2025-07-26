@@ -1,0 +1,15 @@
+services:
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'   
+
+    App\EventListener\PingDatabaseListener:
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, priority: 5000 }
+
+    _defaults:
+        autowire: true
+        autoconfigure: true

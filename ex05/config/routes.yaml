@@ -1,0 +1,40 @@
+e05_index:
+    path: /e05
+    controller: App\E05Bundle\Controller\E05Controller::index
+
+e05_need_auth:
+    path: /e05/need-auth
+    controller: App\E05Bundle\Controller\E05Controller::needAuth
+
+e05_sign_out:
+    path: /e05/sign_out
+    controller: App\E05Bundle\Controller\E05Controller::signOut
+
+e05_sign_in:
+    path: /e05/sign_in
+    controller: App\E05Bundle\Controller\E05Controller::signIn
+
+e05_sign_up:
+    path: /e05/sign_up
+    controller: App\E05Bundle\Controller\E05Controller::createUser
+
+e05_welcome:
+    path: /e05/welcome
+    controller: App\E05Bundle\Controller\E05Controller::welcome
+
+e05_post_new:
+    path: /e05/post/new
+    controller: App\E05Bundle\Controller\E05Controller::newPost
+
+e05_post_show:
+    path: /e05/post/{id}
+    controller: App\E05Bundle\Controller\E05Controller::showPost
+    requirements:
+        id: \d+
+
+e05_post_vote:
+    path: /e05/post/{id}/vote/{type}
+    controller: App\E05Bundle\Controller\E05Controller::vote
+    requirements:
+        id: \d+
+        type: like|dislike
