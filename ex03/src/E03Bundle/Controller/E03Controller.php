@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Ex03Bundle\Controller;
+namespace App\E03Bundle\Controller;
 
 use DateTime;
 use Exception;
@@ -19,7 +19,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-class Ex03Controller extends AbstractController
+class E03Controller extends AbstractController
 {
     #[Route('/e03', name: 'e03_index')]
     public function index(EntityManagerInterface $em): Response

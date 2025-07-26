@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Ex02Bundle\Controller;
+namespace App\E02Bundle\Controller;
 
 use Exception;
 use App\Entity\User;
@@ -16,7 +16,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Doctrine\DBAL\Exception as DoctrineDBALException;
 
-class Ex02Controller extends AbstractController
+class E02Controller extends AbstractController
 {
     #[Route('/e02', name: 'e02_index')]
     public function index(): Response

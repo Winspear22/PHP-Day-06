@@ -1,7 +1,7 @@
 <?php
 
 return [
-    App\Ex02Bundle\Ex02Bundle::class => ['all' => true],
+    App\E02Bundle\E02Bundle::class => ['all' => true],
     Symfony\Bundle\FrameworkBundle\FrameworkBundle::class => ['all' => true],
     Doctrine\Bundle\DoctrineBundle\DoctrineBundle::class => ['all' => true],
     Doctrine\Bundle\FixturesBundle\DoctrineFixturesBundle::class => ['dev' => true, 'test' => true],
