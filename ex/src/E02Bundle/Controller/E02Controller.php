@@ -103,25 +103,6 @@ class E02Controller extends AbstractController
         ]);
     }
 
-    #[Route('/e02/sign_in', name: 'e02_sign_in')]
-    public function signIn(): Response
-    {
-        try
-		{
-            return $this->render('e02/security/login.html.twig');
-        }
-		catch (DoctrineDBALException $e)
-		{
-            $this->addFlash('error', 'La base de données est indisponible.');
-            return $this->render('e02/error_db.html.twig');
-        }
-		catch (Exception $e)
-		{
-            $this->addFlash('error', 'Erreur inattendue : ' . $e->getMessage());
-            return $this->render('e02/error_db_others.html.twig');
-        }
-    }
-
     #[Route('/e02/admin', name: 'e02_admin')]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     #[IsGranted('ROLE_ADMIN')]
@@ -159,12 +140,6 @@ class E02Controller extends AbstractController
 
     #[Route('/e02/sign_out', name: 'e02_sign_out')]
     public function signOut(): void {}
-
-    #[Route('/e02/need-auth', name: 'e02_need_auth')]
-    public function needAuth(): Response
-    {
-        return $this->render('e02/need_auth.html.twig');
-    }
 
     #[Route('/e02/admin/delete/{id}', name: 'e02_admin_delete', methods: ['POST'])]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]

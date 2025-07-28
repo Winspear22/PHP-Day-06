@@ -66,35 +66,9 @@ class E04Controller extends AbstractController
         }
     }
 
-
-    #[Route('/e04/need-auth', name: 'e04_need_auth')]
-    public function needAuth(): Response
-    {
-        return $this->render('e04/need_auth.html.twig');
-    }
-
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     #[Route('/e04/sign_out', name: 'e04_sign_out')]
     public function signOut(): void {}
-
-    #[Route('/e04/sign_in', name: 'e04_sign_in')]
-    public function signIn(): Response
-    {
-        try
-        {
-            return $this->render('e04/security/login.html.twig');
-        }
-        catch (DoctrineDBALException $e) 
-        {
-            $this->addFlash('error', 'La base de données est indisponible.');
-            return $this->render('e04/error_db.html.twig');
-        }
-        catch (Exception $e)
-        {
-            $this->addFlash('error', 'Erreur inattendue : ' . $e->getMessage());
-            return $this->render('e04/error_db_others.html.twig');
-        }
-    }
 
     #[Route('/e04/sign_up', name: 'e04_sign_up')]
     public function createUser(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response

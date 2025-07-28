@@ -38,25 +38,6 @@ class E01Controller extends AbstractController
         }
     }
 
-    #[Route('/e01/sign-in', name: 'e01_sign-in')]
-    public function signIn(): Response
-    {
-        try
-		{
-            return $this->render('e01/security/login.html.twig');
-        }
-		catch (DoctrineDBALException $e)
-		{
-            $this->addFlash('error', 'La base de données est indisponible.');
-            return $this->render('e01/error_db.html.twig');
-        }
-		catch (Exception $e)
-		{
-            $this->addFlash('error', 'Erreur inattendue : ' . $e->getMessage());
-            return $this->render('e01/error_db_others.html.twig');
-        }
-    }
-
     #[Route('/e01/sign-up', name: 'e01_sign-up')]
     public function signUp(
         Request $request,
@@ -124,11 +105,4 @@ class E01Controller extends AbstractController
             return $this->redirectToRoute('e01_index');
         }
     }
-
-	#[Route('/e01/need-auth', name: 'e01_need_auth')]
-	public function needAuth(): Response
-	{
-		return $this->render('e01/need_auth.html.twig');
-	}
-
 }

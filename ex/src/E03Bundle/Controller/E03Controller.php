@@ -40,26 +40,6 @@ class E03Controller extends AbstractController
     #[Route('/e03/sign_out', name: 'e03_sign_out')]
     public function signOut(): void {}
 
-    #[Route('/e03/need-auth', name: 'e03_need_auth')]
-    public function needAuth(): Response
-    {
-        return $this->render('e03/need_auth.html.twig');
-    }
-
-    #[Route('/e03/sign_in', name: 'e03_sign_in')]
-    public function signIn(): Response
-    {
-        try {
-            return $this->render('e03/security/login.html.twig');
-        } catch (DoctrineDBALException $e) {
-            $this->addFlash('error', 'La base de données est indisponible.');
-            return $this->render('e03/error_db.html.twig');
-        } catch (Exception $e) {
-            $this->addFlash('error', 'Erreur inattendue : ' . $e->getMessage());
-            return $this->render('e03/error_db_others.html.twig');
-        }
-    }
-
     #[Route('/e03/sign_up', name: 'e03_sign_up')]
     public function createUser(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
     {

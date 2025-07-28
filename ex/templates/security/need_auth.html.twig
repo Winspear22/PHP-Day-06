@@ -1,0 +1,6 @@
+{% extends 'base.html.twig' %}
+{% block title %}Authentification requise{% endblock %}
+{% block body %}
+<p>Vous devez être connecté pour accéder à cette page.</p>
+<a href="{{ path('login') }}">Se connecter</a>
+{% endblock %}

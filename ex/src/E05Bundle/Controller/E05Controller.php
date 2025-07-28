@@ -44,34 +44,9 @@ return $this->render('e05/error_db_others.html.twig', [
         }
     }
 
-    #[Route('/e05/need-auth', name: 'e05_need_auth')]
-    public function needAuth(): Response
-    {
-        return $this->render('e05/need_auth.html.twig');
-    }
-
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     #[Route('/e05/sign_out', name: 'e05_sign_out')]
     public function signOut(): void {}
-
-    #[Route('/e05/sign_in', name: 'e05_sign_in')]
-    public function signIn(): Response
-    {
-        try
-        {
-            return $this->render('e05/security/login.html.twig');
-        }
-        catch (DoctrineDBALException $e) 
-        {
-            $this->addFlash('error', 'La base de données est indisponible.');
-            return $this->render('e05/error_db.html.twig');
-        }
-        catch (Exception $e)
-        {
-            $this->addFlash('error', 'Erreur inattendue : ' . $e->getMessage());
-            return $this->render('e05/error_db_others.html.twig');
-        }
-    }
 
     #[Route('/e05/sign_up', name: 'e05_sign_up')]
     public function createUser(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
