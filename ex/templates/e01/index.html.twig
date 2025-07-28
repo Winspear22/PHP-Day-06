@@ -18,7 +18,7 @@
         <a href="{{ path('e01_welcome') }}" class="btn btn-success">Aller sur la page Welcome</a>
         <a href="{{ path('e01_sign-out') }}" class="btn btn-danger">Se déconnecter</a>
     {% else %}
-        <a href="{{ path('e01_sign-in') }}" class="btn btn-primary">Se connecter</a>
+        <a href="{{ path('login') }}" class="btn btn-primary">Se connecter</a>
         <a href="{{ path('e01_sign-up') }}" class="btn btn-secondary">S’inscrire</a>
     {% endif %}
 {% endblock %}

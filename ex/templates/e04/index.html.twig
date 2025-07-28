@@ -14,7 +14,7 @@
             <p>Bienvenue, votre session anonyme vient de commencer.</p>
         {% endif %}
 
-        <a href="{{ path('e04_sign_in') }}" class="btn btn-primary">Se connecter</a>
+        <a href="{{ path('login') }}" class="btn btn-primary">Se connecter</a>
         <a href="{{ path('e04_sign_up') }}" class="btn btn-secondary">S’inscrire</a>
     {% else %}
         <p>Bienvenue, vous êtes connecté en tant que <strong>{{ app.user.username }}</strong>. Vous n'êtes plus en session anonyme.</p>

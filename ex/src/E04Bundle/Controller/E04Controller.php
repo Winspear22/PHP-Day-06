@@ -104,7 +104,7 @@ class E04Controller extends AbstractController
                     $em->flush();
 
                     $this->addFlash('success', 'Inscription réussie ! Connecte-toi !');
-                    return $this->redirectToRoute('e04_sign_in');
+                    return $this->redirectToRoute('login');
                 }
             }
             catch (Throwable $e)

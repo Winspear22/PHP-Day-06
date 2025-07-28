@@ -73,7 +73,7 @@ class E07Controller extends AbstractController
                     $em->flush();
 
                     $this->addFlash('success', 'Inscription réussie ! Connecte-toi !');
-                    return $this->redirectToRoute('e07_sign_in');
+                    return $this->redirectToRoute('login');
                 }
             }
             catch (Throwable $e)

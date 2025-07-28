@@ -6,7 +6,7 @@
     <h1>Bienvenue sur le site de l’e07</h1>
 
     {% if not app.user %}
-        <a href="{{ path('e07_sign_in') }}" class="btn btn-primary">Se connecter</a>
+        <a href="{{ path('login') }}" class="btn btn-primary">Se connecter</a>
         <a href="{{ path('e07_sign_up') }}" class="btn btn-secondary">S’inscrire</a>
     {% else %}
         <a href="{{ path('e07_welcome') }}" class="btn btn-success">Aller sur la page Welcome</a>

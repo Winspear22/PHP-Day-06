@@ -90,7 +90,7 @@
 <h1>Bienvenue sur le site de l’e03</h1>
 
 {% if not app.user %}
-    <a href="{{ path('e03_sign_in') }}" class="btn btn-primary">Se connecter</a>
+    <a href="{{ path('login') }}" class="btn btn-primary">Se connecter</a>
     <a href="{{ path('e03_sign_up') }}" class="btn btn-secondary">S’inscrire</a>
 {% else %}
     <a href="{{ path('e03_welcome') }}" class="btn btn-success">Aller sur la page Welcome</a>
@@ -175,7 +175,7 @@
             <p>Bienvenue, votre session anonyme vient de commencer.</p>
         {% endif %}
 
-        <a href="{{ path('e04_sign_in') }}" class="btn btn-primary">Se connecter</a>
+        <a href="{{ path('login') }}" class="btn btn-primary">Se connecter</a>
         <a href="{{ path('e04_sign_up') }}" class="btn btn-secondary">S’inscrire</a>
     {% else %}
         <p>Bienvenue, vous êtes connecté en tant que <strong>{{ app.user.username }}</strong>. Vous n'êtes plus en session anonyme.</p>
@@ -229,7 +229,7 @@
         {{ form_row(registrationForm.submit) }}
     {{ form_end(registrationForm) }}
 
-    <a href="{{ path('e01_sign-in') }}">Déjà inscrit ? Connecte-toi</a>
+    <a href="{{ path('login') }}">Déjà inscrit ? Connecte-toi</a>
     <a href="{{ path('e01_index') }}">Retour</a>
 {% endblock %}
 {% extends 'base.html.twig' %}
@@ -263,7 +263,7 @@
         <a href="{{ path('e01_welcome') }}" class="btn btn-success">Aller sur la page Welcome</a>
         <a href="{{ path('e01_sign-out') }}" class="btn btn-danger">Se déconnecter</a>
     {% else %}
-        <a href="{{ path('e01_sign-in') }}" class="btn btn-primary">Se connecter</a>
+        <a href="{{ path('login') }}" class="btn btn-primary">Se connecter</a>
         <a href="{{ path('e01_sign-up') }}" class="btn btn-secondary">S’inscrire</a>
     {% endif %}
 {% endblock %}
@@ -490,7 +490,7 @@
     <h1>Bienvenue sur le site de l’e07</h1>
 
     {% if not app.user %}
-        <a href="{{ path('e07_sign_in') }}" class="btn btn-primary">Se connecter</a>
+        <a href="{{ path('login') }}" class="btn btn-primary">Se connecter</a>
         <a href="{{ path('e07_sign_up') }}" class="btn btn-secondary">S’inscrire</a>
     {% else %}
         <a href="{{ path('e07_welcome') }}" class="btn btn-success">Aller sur la page Welcome</a>
@@ -634,7 +634,7 @@
     <h1>Bienvenue sur le site de l’e06</h1>
 
     {% if not app.user %}
-        <a href="{{ path('e06_sign_in') }}" class="btn btn-primary">Se connecter</a>
+        <a href="{{ path('login') }}" class="btn btn-primary">Se connecter</a>
         <a href="{{ path('e06_sign_up') }}" class="btn btn-secondary">S’inscrire</a>
     {% else %}
         <a href="{{ path('e06_welcome') }}" class="btn btn-success">Aller sur la page Welcome</a>
@@ -792,7 +792,7 @@
     <h1>Bienvenue sur le site de l’e05</h1>
 
     {% if not app.user %}
-        <a href="{{ path('e05_sign_in') }}" class="btn btn-primary">Se connecter</a>
+        <a href="{{ path('login') }}" class="btn btn-primary">Se connecter</a>
         <a href="{{ path('e05_sign_up') }}" class="btn btn-secondary">S’inscrire</a>
     {% else %}
         <a href="{{ path('e05_welcome') }}" class="btn btn-success">Aller sur la page Welcome</a>
@@ -933,7 +933,7 @@
 <h1>Bienvenue sur le site de l’e02</h1>
 
 {% if not user %}
-    <a href="{{ path('e02_sign_in') }}" class="btn btn-primary">Se connecter</a>
+    <a href="{{ path('login') }}" class="btn btn-primary">Se connecter</a>
     <a href="{{ path('e02_sign_up') }}" class="btn btn-secondary">S’inscrire</a>
 {% else %}
     <a href="{{ path('e02_welcome') }}" class="btn btn-success">Aller sur la page Welcome</a>

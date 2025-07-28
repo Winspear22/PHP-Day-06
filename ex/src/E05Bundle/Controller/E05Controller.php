@@ -69,7 +69,7 @@ return $this->render('e05/error_db_others.html.twig', [
                     $em->flush();
 
                     $this->addFlash('success', 'Inscription réussie ! Connecte-toi !');
-                    return $this->redirectToRoute('e05_sign_in');
+                    return $this->redirectToRoute('login');
                 }
             }
             catch (Throwable $e)

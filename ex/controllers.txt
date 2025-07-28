@@ -73,7 +73,7 @@ class E01Controller extends AbstractController
                     $em->flush();
 
                     $this->addFlash('success', 'Inscription réussie ! Connecte-toi !');
-                    return $this->redirectToRoute('e01_sign-in');
+                    return $this->redirectToRoute('login');
                 }
             } 
             catch (Exception $e) 
@@ -196,7 +196,7 @@ class E02Controller extends AbstractController
                     $em->persist($user);
                     $em->flush();
                     $this->addFlash('success', 'Inscription réussie ! Connecte-toi !');
-                    return $this->redirectToRoute('e02_sign_in');
+                    return $this->redirectToRoute('login');
                 }
             }
 			catch (Exception $e)
@@ -305,7 +305,7 @@ class E03Controller extends AbstractController
             ]);
         } catch (\Throwable $e) {
             $this->addFlash('error', 'Erreur lors du chargement des posts.');
-            return $this->redirectToRoute('e03_need_auth');
+            return $this->redirectToRoute('need_auth');
         }
     }
 
@@ -331,7 +331,7 @@ class E03Controller extends AbstractController
                     $em->flush();
 
                     $this->addFlash('success', 'Inscription réussie ! Connecte-toi !');
-                    return $this->redirectToRoute('e03_sign_in');
+                    return $this->redirectToRoute('login');
                 }
             } catch (\Throwable $e) {
                 $this->addFlash('error', 'Erreur lors de la création de l\'utilisateur.');
@@ -516,7 +516,7 @@ class E04Controller extends AbstractController
                     $em->flush();
 
                     $this->addFlash('success', 'Inscription réussie ! Connecte-toi !');
-                    return $this->redirectToRoute('e04_sign_in');
+                    return $this->redirectToRoute('login');
                 }
             }
             catch (Throwable $e)
@@ -619,7 +619,7 @@ return $this->render('e05/error_db_others.html.twig', [
                     $em->flush();
 
                     $this->addFlash('success', 'Inscription réussie ! Connecte-toi !');
-                    return $this->redirectToRoute('e05_sign_in');
+                    return $this->redirectToRoute('login');
                 }
             }
             catch (Throwable $e)
@@ -833,7 +833,7 @@ class E06Controller extends AbstractController
                     $em->flush();
 
                     $this->addFlash('success', 'Inscription réussie ! Connecte-toi !');
-                    return $this->redirectToRoute('e06_sign_in');
+                    return $this->redirectToRoute('login');
                 }
             }
             catch (Throwable $e)
@@ -1018,7 +1018,7 @@ class E07Controller extends AbstractController
                     $em->flush();
 
                     $this->addFlash('success', 'Inscription réussie ! Connecte-toi !');
-                    return $this->redirectToRoute('e07_sign_in');
+                    return $this->redirectToRoute('login');
                 }
             }
             catch (Throwable $e)

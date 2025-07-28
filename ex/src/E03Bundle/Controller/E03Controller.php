@@ -32,7 +32,7 @@ class E03Controller extends AbstractController
             ]);
         } catch (\Throwable $e) {
             $this->addFlash('error', 'Erreur lors du chargement des posts.');
-            return $this->redirectToRoute('e03_need_auth');
+            return $this->redirectToRoute('need_auth');
         }
     }
 
@@ -58,7 +58,7 @@ class E03Controller extends AbstractController
                     $em->flush();
 
                     $this->addFlash('success', 'Inscription réussie ! Connecte-toi !');
-                    return $this->redirectToRoute('e03_sign_in');
+                    return $this->redirectToRoute('login');
                 }
             } catch (\Throwable $e) {
                 $this->addFlash('error', 'Erreur lors de la création de l\'utilisateur.');
