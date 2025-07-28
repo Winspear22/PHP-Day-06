@@ -1,0 +1,10 @@
+{% extends 'base.html.twig' %}
+{% block title %}Authentification requise{% endblock %}
+{% block body %}
+    <div class="alert alert-warning mt-4">
+        <h2>Vous devez être connecté pour accéder à cette page (ou être administrateur s'il s'agit de la page administrateur).</h2>
+        <a href="{{ path('e07_sign_in') }}" class="btn btn-primary">Se connecter</a>
+        <a href="{{ path('e07_sign_up') }}" class="btn btn-secondary">S’inscrire</a>
+        <a href="{{ path('e07_index') }}">Retour</a>
+    </div>
+{% endblock %}

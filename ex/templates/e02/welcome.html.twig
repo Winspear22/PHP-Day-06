@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Page de bienvenue{% endblock %}
+
+{% block body %}
+<h1>Bienvenue, {{ user.username }} !</h1>
+
+{% if 'ROLE_ADMIN' in user.getRoles() %}
+    <p>Vous êtes administrateur.</p>
+    <a href="{{ path('e02_admin') }}" class="btn btn-primary">Accéder à la page d’administration</a>
+{% else %}
+    <p>Malheureusement, vous n’êtes pas admin. Vous ne pouvez pas accéder à la page d’administration.</p>
+{% endif %}
+
+<a href="{{ path('e02_sign_out') }}" class="btn btn-danger mt-3">Se déconnecter</a>
+{% endblock %}

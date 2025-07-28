@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Créer un compte{% endblock %}
+
+{% block body %}
+<h1>Créer un compte</h1>
+
+{% for label, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="alert alert-{{ label }} mt-2">{{ message }}</div>
+    {% endfor %}
+{% endfor %}
+
+{{ form_start(registrationForm) }}
+    {{ form_row(registrationForm.username) }}
+    {{ form_row(registrationForm.plainPassword, {
+        label: 'Mot de passe'
+    }) }}
+    <button type="submit" class="btn btn-primary">Créer le compte</button>
+{{ form_end(registrationForm) }}
+
+<a href="{{ path('e07_index') }}" class="btn btn-secondary mt-3">Retour à l’accueil</a>
+{% endblock %}

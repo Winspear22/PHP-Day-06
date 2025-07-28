@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Page de bienvenue{% endblock %}
+
+{% block body %}
+<h1>Bienvenue {{ app.user.username }} !</h1>
+
+
+<a href="{{ path('e04_sign_out') }}" class="btn btn-danger mt-4">Se déconnecter</a>
+<a href="{{ path('e04_index') }}" class="btn btn-danger mt-4">Retour</a>
+
+{% endblock %}

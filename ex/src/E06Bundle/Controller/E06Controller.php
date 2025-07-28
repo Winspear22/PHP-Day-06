@@ -25,17 +25,17 @@ class E06Controller extends AbstractController
     {
         try
 		{
-            return $this->render('index.html.twig');
+            return $this->render('e06/index.html.twig');
         }
 		catch (DoctrineDBALException $e)
 		{
             $this->addFlash('error', 'La base de données est indisponible.');
-            return $this->render('error_db.html.twig');
+            return $this->render('e06/error_db.html.twig');
         }
 		catch (Exception $e)
 		{
 
-    return $this->render('error_db_others.html.twig', [
+    return $this->render('e06/error_db_others.html.twig', [
     'error_message' => 'Erreur inattendue : ' . $e->getMessage(),
     'exception_message' => $e::class,
 ]);
@@ -46,7 +46,7 @@ class E06Controller extends AbstractController
     #[Route('/e06/need-auth', name: 'e06_need_auth')]
     public function needAuth(): Response
     {
-        return $this->render('need_auth.html.twig');
+        return $this->render('e06/need_auth.html.twig');
     }
 
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
@@ -58,17 +58,17 @@ class E06Controller extends AbstractController
     {
         try
         {
-            return $this->render('security/login.html.twig');
+            return $this->render('e06/security/login.html.twig');
         }
         catch (DoctrineDBALException $e) 
         {
             $this->addFlash('error', 'La base de données est indisponible.');
-            return $this->render('error_db.html.twig');
+            return $this->render('e06/error_db.html.twig');
         }
         catch (Exception $e)
         {
             $this->addFlash('error', 'Erreur inattendue : ' . $e->getMessage());
-            return $this->render('error_db_others.html.twig');
+            return $this->render('e06/error_db_others.html.twig');
         }
     }
 
@@ -103,7 +103,7 @@ class E06Controller extends AbstractController
             }
         }
 
-        return $this->render('sign_up.html.twig', [
+        return $this->render('e06/sign_up.html.twig', [
             'registrationForm' => $form->createView(),
         ]);
     }
@@ -116,7 +116,7 @@ class E06Controller extends AbstractController
         try
         {
             $posts = $em->getRepository(Post::class)->findBy([], ['created' => 'DESC']);
-            return $this->render('welcome.html.twig', [
+            return $this->render('e06/welcome.html.twig', [
                 'user' => $this->getUser(),
                 'posts' => $posts,
             ]);
@@ -157,7 +157,7 @@ class E06Controller extends AbstractController
             }
         }
 
-        return $this->render('post.html.twig', [
+        return $this->render('e06/post.html.twig', [
             'form' => $form->createView(),
         ]);
     }
@@ -168,7 +168,7 @@ class E06Controller extends AbstractController
     {
         try
         {
-            return $this->render('post_show.html.twig', [
+            return $this->render('e06/post_show.html.twig', [
                 'post' => $post,
             ]);
         } 
@@ -198,7 +198,7 @@ class E06Controller extends AbstractController
             $this->addFlash('success', 'Post modifié avec succès !');
             return $this->redirectToRoute('e06_post_show', ['id' => $post->getId()]);
         }
-        return $this->render('post_edit.html.twig', [
+        return $this->render('e06/post_edit.html.twig', [
             'form' => $form->createView(),
             'post' => $post,
         ]);

@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block body %}
+<h1>{{ post.title }}</h1>
+<p><strong>Auteur :</strong> {{ post.author.username }}</p>
+<p><strong>Date :</strong> {{ post.created|date('d/m/Y H:i') }}</p>
+<hr>
+<p>{{ post.content }}</p>
+
+<a href="{{ path('e03_welcome') }}" class="btn btn-secondary mt-3">Retour à l’accueil</a>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inscription{% endblock %}
+
+{% block body %}
+    <h1>Inscription</h1>
+    {{ form_start(registrationForm) }}
+        {{ form_row(registrationForm.username) }}
+        {{ form_row(registrationForm.plainPassword) }}
+        {{ form_row(registrationForm.submit) }}
+    {{ form_end(registrationForm) }}
+
+    <a href="{{ path('e01_sign-in') }}">Déjà inscrit ? Connecte-toi</a>
+    <a href="{{ path('e01_index') }}">Retour</a>
+{% endblock %}

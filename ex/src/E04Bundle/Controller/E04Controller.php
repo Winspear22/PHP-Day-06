@@ -47,7 +47,7 @@ class E04Controller extends AbstractController
                 $elapsed = $now - $session->get('last_access');
                 $session->set('last_access', $now);
             }
-            return $this->render('index.html.twig', [
+            return $this->render('e04/index.html.twig', [
                 'name' => $name,
                 'elapsed' => $elapsed,
             ]);
@@ -55,11 +55,11 @@ class E04Controller extends AbstractController
         catch (DoctrineDBALException $e)
         {
             $this->addFlash('error', 'La base de données est indisponible.');
-            return $this->render('error_db.html.twig');
+            return $this->render('e04/error_db.html.twig');
         }
         catch (Exception $e)
         {
-            return $this->render('error_db_others.html.twig', [
+            return $this->render('e04/error_db_others.html.twig', [
                 'error_message' => 'Erreur inattendue : ' . $e->getMessage(),
                 'exception_message' => $e::class,
             ]);
@@ -70,7 +70,7 @@ class E04Controller extends AbstractController
     #[Route('/e04/need-auth', name: 'e04_need_auth')]
     public function needAuth(): Response
     {
-        return $this->render('need_auth.html.twig');
+        return $this->render('e04/need_auth.html.twig');
     }
 
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
@@ -82,17 +82,17 @@ class E04Controller extends AbstractController
     {
         try
         {
-            return $this->render('security/login.html.twig');
+            return $this->render('e04/security/login.html.twig');
         }
         catch (DoctrineDBALException $e) 
         {
             $this->addFlash('error', 'La base de données est indisponible.');
-            return $this->render('error_db.html.twig');
+            return $this->render('e04/error_db.html.twig');
         }
         catch (Exception $e)
         {
             $this->addFlash('error', 'Erreur inattendue : ' . $e->getMessage());
-            return $this->render('error_db_others.html.twig');
+            return $this->render('e04/error_db_others.html.twig');
         }
     }
 
@@ -115,7 +115,7 @@ class E04Controller extends AbstractController
                     if (strtolower($username) === strtolower("Anonymous $animal"))
                     {
                         $form->get('username')->addError(new FormError('Ce nom est réservé aux utilisateurs anonymes.'));
-                        return $this->render('sign_up.html.twig', [
+                        return $this->render('e04/sign_up.html.twig', [
                             'registrationForm' => $form->createView(),
                         ]);
                     }
@@ -140,7 +140,7 @@ class E04Controller extends AbstractController
             }
         }
 
-        return $this->render('sign_up.html.twig', [
+        return $this->render('e04/sign_up.html.twig', [
             'registrationForm' => $form->createView(),
         ]);
     }
@@ -152,7 +152,7 @@ class E04Controller extends AbstractController
     {
         try
         {
-            return $this->render('welcome.html.twig', [
+            return $this->render('e04/welcome.html.twig', [
             'username' => $this->getUser()->getUserIdentifier(),
             ]);
         }

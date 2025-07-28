@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block body %}
+<h1>{{ post.title }}</h1>
+
+<p><strong>Auteur :</strong> {{ post.author.username }} (Réputation : {{ post.author.reputation }})</p>
+<p><strong>Date :</strong> {{ post.created|date('d/m/Y H:i') }}</p>
+
+<hr>
+
+<p>{{ post.content }}</p>
+
+<hr>
+
+<h3>Votes</h3>
+<p>
+    👍 {{ post.votes|filter(v => v.isLike())|length }}
+    /
+    👎 {{ post.votes|filter(v => not v.isLike())|length }}
+</p>
+
+<ul>
+    {% for vote in post.votes %}
+        <li>
+            {{ vote.user.username }} a voté 
+            {% if vote.isLike %}
+                <span style="color:green;">👍</span>
+            {% else %}
+                <span style="color:red;">👎</span>
+            {% endif %}
+        </li>
+    {% else %}
+        <li>Aucun vote pour le moment.</li>
+    {% endfor %}
+</ul>
+
+<hr>
+{% if post.author.id != app.user.id %}
+    <a href="{{ path('e05_post_vote', {id: post.id, type: 'like'}) }}" class="btn btn-sm btn-success">👍</a>
+    <a href="{{ path('e05_post_vote', {id: post.id, type: 'dislike'}) }}" class="btn btn-sm btn-danger">👎</a>
+{% else %}
+    <span class="badge bg-secondary">Tu ne peux pas voter pour ton post</span>
+{% endif %}
+<a href="{{ path('e05_welcome') }}" class="btn btn-secondary mt-3">← Retour à l’accueil</a>
+{% endblock %}

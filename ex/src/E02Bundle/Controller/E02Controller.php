@@ -21,7 +21,7 @@ class E02Controller extends AbstractController
     #[Route('/e02', name: 'e02_index')]
     public function index(): Response
     {
-        return $this->render('index.html.twig', [
+        return $this->render('e02/index.html.twig', [
             'user' => $this->getUser()
         ]);
     }
@@ -98,7 +98,7 @@ class E02Controller extends AbstractController
             }
         }
 
-        return $this->render('sign_up.html.twig', [
+        return $this->render('e02/sign_up.html.twig', [
             'registrationForm' => $form->createView(),
         ]);
     }
@@ -108,17 +108,17 @@ class E02Controller extends AbstractController
     {
         try
 		{
-            return $this->render('security/login.html.twig');
+            return $this->render('e02/security/login.html.twig');
         }
 		catch (DoctrineDBALException $e)
 		{
             $this->addFlash('error', 'La base de données est indisponible.');
-            return $this->render('error_db.html.twig');
+            return $this->render('e02/error_db.html.twig');
         }
 		catch (Exception $e)
 		{
             $this->addFlash('error', 'Erreur inattendue : ' . $e->getMessage());
-            return $this->render('error_db_others.html.twig');
+            return $this->render('e02/error_db_others.html.twig');
         }
     }
 
@@ -137,7 +137,7 @@ class E02Controller extends AbstractController
             $users = [];
         }
 
-        return $this->render('admin.html.twig', ['users' => $users]);
+        return $this->render('e02/admin.html.twig', ['users' => $users]);
     }
 
     #[Route('/e02/welcome', name: 'e02_welcome')]
@@ -146,7 +146,7 @@ class E02Controller extends AbstractController
     {
         try
 		{
-            return $this->render('welcome.html.twig', [
+            return $this->render('e02/welcome.html.twig', [
                 'user' => $this->getUser(),
             ]);
         }
@@ -163,7 +163,7 @@ class E02Controller extends AbstractController
     #[Route('/e02/need-auth', name: 'e02_need_auth')]
     public function needAuth(): Response
     {
-        return $this->render('need_auth.html.twig');
+        return $this->render('e02/need_auth.html.twig');
     }
 
     #[Route('/e02/admin/delete/{id}', name: 'e02_admin_delete', methods: ['POST'])]

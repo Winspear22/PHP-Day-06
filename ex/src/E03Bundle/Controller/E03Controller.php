@@ -26,7 +26,7 @@ class E03Controller extends AbstractController
     {
         try {
             $posts = $em->getRepository(Post::class)->findBy([], ['created' => 'DESC']);
-            return $this->render('index.html.twig', [
+            return $this->render('e03/index.html.twig', [
                 'user' => $this->getUser(),
                 'posts' => $posts,
             ]);
@@ -43,20 +43,20 @@ class E03Controller extends AbstractController
     #[Route('/e03/need-auth', name: 'e03_need_auth')]
     public function needAuth(): Response
     {
-        return $this->render('need_auth.html.twig');
+        return $this->render('e03/need_auth.html.twig');
     }
 
     #[Route('/e03/sign_in', name: 'e03_sign_in')]
     public function signIn(): Response
     {
         try {
-            return $this->render('security/login.html.twig');
+            return $this->render('e03/security/login.html.twig');
         } catch (DoctrineDBALException $e) {
             $this->addFlash('error', 'La base de données est indisponible.');
-            return $this->render('error_db.html.twig');
+            return $this->render('e03/error_db.html.twig');
         } catch (Exception $e) {
             $this->addFlash('error', 'Erreur inattendue : ' . $e->getMessage());
-            return $this->render('error_db_others.html.twig');
+            return $this->render('e03/error_db_others.html.twig');
         }
     }
 
@@ -86,7 +86,7 @@ class E03Controller extends AbstractController
             }
         }
 
-        return $this->render('sign_up.html.twig', [
+        return $this->render('e03/sign_up.html.twig', [
             'registrationForm' => $form->createView(),
         ]);
     }
@@ -99,7 +99,7 @@ class E03Controller extends AbstractController
         try
         {
             $posts = $em->getRepository(Post::class)->findBy([], ['created' => 'DESC']);
-            return $this->render('welcome.html.twig', [
+            return $this->render('e03/welcome.html.twig', [
                 'user' => $this->getUser(),
                 'posts' => $posts,
             ]);
@@ -136,7 +136,7 @@ class E03Controller extends AbstractController
             }
         }
 
-        return $this->render('post.html.twig', [
+        return $this->render('e03/post.html.twig', [
             'form' => $form->createView(),
         ]);
     }
@@ -147,7 +147,7 @@ class E03Controller extends AbstractController
     {
         try
         {
-            return $this->render('post_show.html.twig', [
+            return $this->render('e03/post_show.html.twig', [
                 'post' => $post,
             ]);
         } 
