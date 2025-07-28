@@ -1,61 +1,24 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+
 services:
-    # Enregistre tous les services (contrôleurs, form, etc.) sauf exclusions
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
     App\:
         resource: '../src/'
         exclude:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
-            - '../src/**/Entity/'
-            - '../src/**/DependencyInjection/'
 
-    # Enregistre TOUS les contrôleurs de TOUS les bundles (E01 à E07)
-    App\E01Bundle\Controller\:
-        resource: '../src/E01Bundle/Controller'
-        tags: ['controller.service_arguments']
-        autowire: true
-        autoconfigure: true
-
-    App\E02Bundle\Controller\:
-        resource: '../src/E02Bundle/Controller'
-        tags: ['controller.service_arguments']
-        autowire: true
-        autoconfigure: true
-
-    App\E03Bundle\Controller\:
-        resource: '../src/E03Bundle/Controller'
-        tags: ['controller.service_arguments']
-        autowire: true
-        autoconfigure: true
-
-    App\E04Bundle\Controller\:
-        resource: '../src/E04Bundle/Controller'
-        tags: ['controller.service_arguments']
-        autowire: true
-        autoconfigure: true
-
-    App\E05Bundle\Controller\:
-        resource: '../src/E05Bundle/Controller'
-        tags: ['controller.service_arguments']
-        autowire: true
-        autoconfigure: true
-
-    App\E06Bundle\Controller\:
-        resource: '../src/E06Bundle/Controller'
-        tags: ['controller.service_arguments']
-        autowire: true
-        autoconfigure: true
-
-    App\E07Bundle\Controller\:
-        resource: '../src/E07Bundle/Controller'
-        tags: ['controller.service_arguments']
-        autowire: true
-        autoconfigure: true
-
-    App\EventListener\PingDatabaseListener:
-        tags:
-            - { name: kernel.event_listener, event: kernel.request, priority: 5000 }
-
-    _defaults:
-        autowire: true
-        autoconfigure: true
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
