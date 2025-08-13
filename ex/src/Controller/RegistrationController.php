@@ -48,6 +48,12 @@ public function register(Request $request, UserPasswordHasherInterface $userPass
     $form = $this->createForm(RegistrationFormType::class, $user);
     $form->handleRequest($request);
 
+    if ($this->getUser())
+    {
+        $this->addFlash('error', 'Vous êtes déjà connecté. Déconnectez-vous pour créer un autre compte.');
+        return $this->redirectToRoute('e01_index');
+    }
+
     if ($form->isSubmitted()) {
         if (!$form->isValid()) {
             foreach ($form->getErrors(true) as $error) {
