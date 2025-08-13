@@ -7,15 +7,14 @@
         {% block stylesheets %}
             <link rel="stylesheet" href="{{ asset('style.css') }}">
         {% endblock %}
-
-        {% block javascripts %}
-        {% endblock %}
+        {% block javascripts %}{% endblock %}
     </head>
     <body>
 
+        {# Affichage de tous les messages flash #}
         {% for label, messages in app.flashes %}
             {% for message in messages %}
-                <div class="flash-message flash-{{ label }}">
+                <div class="alert alert-{{ label }}">
                     {{ message }}
                 </div>
             {% endfor %}

@@ -16,8 +16,8 @@ class AuthenticationEntryPoint401 implements AuthenticationEntryPointInterface
     public function start(Request $request, ?AuthenticationException $authException = null): Response
     {		
 		$request->getSession()->getFlashBag()->add(
-			'note',
-			'You have to login in order to access this popo page.'
+			'info',
+			'Info: You have to login in order to access this page.'
 		);
         return new RedirectResponse($this->urlGenerator->generate('e01_need_auth'));
     }
