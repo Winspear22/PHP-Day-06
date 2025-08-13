@@ -4,7 +4,7 @@
 
 {% block body %}
     <h1>{{ message }}</h1>
-
+	<p> Coucou, tu es connecté !</p> 
     {% if app.user %}
         <a href="{{ path('app_logout') }}">Se déconnecter</a>
     {% else %}
