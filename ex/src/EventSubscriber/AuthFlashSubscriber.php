@@ -18,9 +18,9 @@ final class AuthFlashSubscriber implements EventSubscriberInterface
     {
         return [
             LoginSuccessEvent::class => 'onLoginSuccess',
-            LoginFailureEvent::class => 'onLoginFailure',
             LogoutEvent::class       => 'onLogout',
         ];
+		//LoginFailureEvent::class => 'onLoginFailure',
         // Si tu veux cibler un firewall en particulier, tu peux aussi utiliser les *_MAIN events,
         // mais la méthode ci-dessus est la plus simple et marche pour "main".
     }
@@ -32,12 +32,12 @@ final class AuthFlashSubscriber implements EventSubscriberInterface
         // Laisse le flow standard continuer (redirection vers target_path / default_target_path)
     }
 
-    public function onLoginFailure(LoginFailureEvent $event): void
+    /*public function onLoginFailure(LoginFailureEvent $event): void
     {
         // message rouge si identifiants invalides
         $event->getRequest()->getSession()->getFlashBag()->add('error', 'Identifiants invalides.');
         // Le handler par défaut te renverra déjà sur la page de login avec l’erreur.
-    }
+    }*/
 
     public function onLogout(LogoutEvent $event): void
     {
