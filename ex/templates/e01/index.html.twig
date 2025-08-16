@@ -6,6 +6,8 @@
     <h1>{{ message }}</h1>
     {% if app.user %}
 		<p> Coucou, tu es connecté {{ app.user.userIdentifier }} ! (Ceci est un message du front).</p> 
+        <p> Tu es en ce moment sur la page de l'index.</p>
+        <a href="{{ path('e01_welcome') }}">Retourner sur la page de bienvenue</a>
         <a href="{{ path('app_logout') }}">Se déconnecter</a>
     {% else %}
 		<p> Connecte toi ou inscris toi, jeune inconnu ! (Ceci est un message du front).</p> 
