@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use Throwable;
 use App\Entity\User;
 use App\Form\RegistrationFormType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -41,48 +42,56 @@ class RegistrationController extends AbstractController
         ]);
     }*/
 
-        #[Route('/e01/register', name: 'app_register')]
-public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): Response
-{
-    $user = new User();
-    $form = $this->createForm(RegistrationFormType::class, $user);
-    $form->handleRequest($request);
-
-    if ($this->getUser())
+    #[Route('/e01/register', name: 'app_register')]
+    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): Response
     {
-        $this->addFlash('error', 'Vous êtes déjà connecté. Déconnectez-vous pour créer un autre compte.');
-        return $this->redirectToRoute('e01_index');
-    }
+        $user = new User();
+        $form = $this->createForm(RegistrationFormType::class, $user);
+        $form->handleRequest($request);
 
-    if ($form->isSubmitted()) {
-        if (!$form->isValid()) {
-            foreach ($form->getErrors(true) as $error) {
-                $this->addFlash('error', $error->getMessage());
+        if ($this->getUser())
+        {
+            $this->addFlash('error', 'Vous êtes déjà connecté. Déconnectez-vous pour créer un autre compte.');
+            return $this->redirectToRoute('e01_index');
+        }
+
+        if ($form->isSubmitted())
+        {
+            if (!$form->isValid())
+            {
+                foreach ($form->getErrors(true) as $error)
+                    $this->addFlash('error', $error->getMessage());
             }
-        } else {
-            try {
-                $user->setPassword(
-                    $userPasswordHasher->hashPassword(
-                        $user,
-                        $form->get('plainPassword')->getData()
-                    )
-                );
-                $entityManager->persist($user);
-                $entityManager->flush();
+            else
+            {
+                try
+                {
+                    $user->setPassword(
+                        $userPasswordHasher->hashPassword(
+                            $user,
+                            $form->get('plainPassword')->getData()
+                        )
+                    );
+                    $user->setRoles(['ROLE_USER']);
+                    $entityManager->persist($user);
+                    $entityManager->flush();
 
-                $this->addFlash('success', 'Compte créé avec succès !');
-                return $this->redirectToRoute('e01_index');
-
-            } catch (UniqueConstraintViolationException $e) {
-                $this->addFlash('error', 'Ce nom d’utilisateur est déjà pris.');
-            } catch (\Throwable $e) {
-                $this->addFlash('error', 'Erreur lors de la création du compte : '.$e->getMessage());
+                    $this->addFlash('success', 'Compte créé avec succès !');
+                    return $this->redirectToRoute('e01_index');
+                }
+                catch (UniqueConstraintViolationException $e)
+                {
+                    $this->addFlash('error', 'Ce nom d’utilisateur est déjà pris.');
+                }
+                catch (Throwable $e)
+                {
+                    $this->addFlash('error', 'Erreur lors de la création du compte : '.$e->getMessage());
+                }
             }
         }
-    }
 
-    return $this->render('registration/register.html.twig', [
-        'registrationForm' => $form->createView(),
-    ]);
-}
+        return $this->render('registration/register.html.twig', [
+            'registrationForm' => $form->createView(),
+        ]);
+    }
 }
