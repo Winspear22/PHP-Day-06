@@ -7,6 +7,16 @@
     {% if app.user %}
         <p> Coucou, tu es connecté {{ app.user.userIdentifier }} ! (Ceci est un message du front).</p> 
         <p> Tu as bien pu accéder à la page Welcome après t'être connecté !</p>
+        <p>Ton rôle est : {{ app.user.roles|join(', ') }}</p>
+        {% if is_granted('ROLE_ADMIN') %}
+          <p>Vu que tu es admin, tu peux avoir accès à ce panneau de configuration :</p>
+          <a href="{{ path('e02_admin_panel') }}">Panneau d'administration</a>
+          <br>
+        {% else %}
+          <p>Malheureusement, tu n'es pas administrateur, tu ne peux donc pas accéder au panneau d'administration.</p>
+        {% endif %}
+
+
         <a href="{{ path('e01_index') }}">Retourner à l'index</a>
         <a href="{{ path('app_logout') }}">Se déconnecter</a>
     {% endif %}
