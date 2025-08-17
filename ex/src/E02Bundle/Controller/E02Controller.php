@@ -3,6 +3,7 @@
 namespace App\E02Bundle\Controller;
 
 use Exception;
+use Throwable;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -77,7 +78,7 @@ class E02Controller extends AbstractController
 			$em->flush();
 			$this->addFlash('success', "L'utilisateur {$user->getUsername()} a été supprimé.");
 		}
-		catch (\Throwable $e)
+		catch (Throwable $e)
 		{
 			$this->addFlash('error', 'Erreur lors de la suppression : '.$e->getMessage());
 		}
