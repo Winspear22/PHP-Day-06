@@ -1,6 +1,7 @@
 <?php
 
 return [
+    App\E03Bundle\E03Bundle::class => ['all' => true],
     App\E02Bundle\E02Bundle::class => ['all' => true],
     Symfony\Bundle\FrameworkBundle\FrameworkBundle::class => ['all' => true],
     Doctrine\Bundle\DoctrineBundle\DoctrineBundle::class => ['all' => true],

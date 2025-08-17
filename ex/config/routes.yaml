@@ -7,3 +7,6 @@ controllers:
 E02Controller:
     resource: ../src/E02Bundle/Controller/
     type: attribute
+E03Bundle:
+    resource: '../src/E03Bundle/Controller'
+    type: annotation
