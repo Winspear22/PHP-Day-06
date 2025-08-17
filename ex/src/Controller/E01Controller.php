@@ -2,6 +2,9 @@
 
 namespace App\Controller;
 
+use Exception;
+use App\Entity\Post;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -28,13 +31,34 @@ class E01Controller extends AbstractController
             'message' => 'Vous n\'êtes pas connecté ! (Ceci est un message du controller).',
         ]);
     }
+
+    #[Route('/e01/welcome', name: 'e01_welcome')]
+    #[IsGranted('ROLE_USER')]
+    public function welcome(ManagerRegistry $doctrine): Response
+    {
+        try
+        {
+            $posts = $doctrine->getRepository(Post::class)->findBy([], ['created' => 'DESC']);
+
+            return $this->render('e01/welcome.html.twig', [
+                'message' => 'Bienvenue sur la page Welcome ! (Ceci est un message du controller).',
+                'posts' => $posts,
+            ]);
+        }
+        catch (Exception $e)
+        {
+            $this->addFlash('error', 'Erreur, nous n\'avons pas pu récupérer les messages : ' . $e->getMessage());
+            return $this->redirectToRoute('e01_index');
+        }
+    }
+        
 	
-	#[Route('/e01/welcome', name: 'e01_welcome')]
+	/*#[Route('/e01/welcome', name: 'e01_welcome')]
     #[IsGranted('ROLE_USER')]
     public function welcome(): Response
     {
         return $this->render('e01/welcome.html.twig', [
             'message' => 'Bienvenue sur la page Welcome ! (Ceci est un message du controller).',
         ]);
-    }
+    }*/
 }

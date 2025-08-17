@@ -1,9 +1,13 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Exercice 03{% endblock %}
+{% block title %}Détails du post{% endblock %}
 
 {% block body %}
-	<h1>Détails du message</h1>
+    <h1>{{ post.title }}</h1>
+    <p><strong>Auteur :</strong> {{ post.author.username }}</p>
+    <p><strong>Date :</strong> {{ post.created|date('d/m/Y H:i') }}</p>
+    <p>{{ post.content }}</p>
 
-
+    <br>
+    <a href="{{ path('e03_read_all_posts') }}">Retour aux posts</a>
 {% endblock %}

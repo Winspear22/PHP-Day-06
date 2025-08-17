@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Créer un Post{% endblock %}
+
+{% block body %}
+<h1>Créer un nouveau Post</h1>
+
+{{ form_start(form) }}
+    {{ form_label(form.title) }}
+    {{ form_widget(form.title) }}
+
+    {{ form_label(form.content) }}
+    {{ form_widget(form.content) }}
+
+    <button type="submit" class="btn">Publier</button>
+{{ form_end(form) }}
+
+<br>
+<a href="{{ path('e03_read_all_posts') }}">Retour aux posts</a>
+{% endblock %}

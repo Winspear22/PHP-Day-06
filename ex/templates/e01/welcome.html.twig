@@ -4,20 +4,56 @@
 
 {% block body %}
     <h1>{{ message }}</h1>
+
     {% if app.user %}
-        <p> Coucou, tu es connecté {{ app.user.userIdentifier }} ! (Ceci est un message du front).</p> 
-        <p> Tu as bien pu accéder à la page Welcome après t'être connecté !</p>
+        <p>Coucou, tu es connecté {{ app.user.userIdentifier }} ! (Ceci est un message du front).</p> 
+        <p>Tu as bien pu accéder à la page Welcome après t'être connecté !</p>
         <p>Ton rôle est : {{ app.user.roles|join(', ') }}</p>
+
         {% if is_granted('ROLE_ADMIN') %}
-          <p>Vu que tu es admin, tu peux avoir accès à ce panneau de configuration :</p>
-          <a href="{{ path('e02_admin_panel') }}">Panneau d'administration</a>
-          <br>
+            <p>Vu que tu es admin, tu peux avoir accès à ce panneau de configuration :</p>
+            <a href="{{ path('e02_admin_panel') }}">Panneau d'administration</a>
+            <br>
         {% else %}
-          <p>Malheureusement, tu n'es pas administrateur, tu ne peux donc pas accéder au panneau d'administration.</p>
+            <p>Malheureusement, tu n'es pas administrateur, tu ne peux donc pas accéder au panneau d'administration.</p>
         {% endif %}
 
+        <hr>
 
-        <a href="{{ path('e01_index') }}">Retourner à l'index</a>
+        <h2>📜 Liste des posts</h2>
+
+        {% if posts is defined and posts|length > 0 %}
+            <table border="1" cellpadding="5">
+                <thead>
+                    <tr>
+                        <th>Titre</th>
+                        <th>Auteur</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for post in posts %}
+                        <tr>
+                            <td>
+                                <a href="{{ path('e03_read_post_details', {id: post.id}) }}">
+                                    {{ post.title }}
+                                </a>
+                            </td>
+                            <td>{{ post.author.username }}</td>
+                            <td>{{ post.created|date('d/m/Y H:i') }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p><em>Aucun post pour le moment.</em></p>
+        {% endif %}
+
+        <br>
+        <a href="{{ path('e03_create_post') }}">✍️ Créer un nouveau post</a>
+        <br><br>
+
+        <a href="{{ path('e01_index') }}">Retourner à l'index</a> |
         <a href="{{ path('app_logout') }}">Se déconnecter</a>
     {% endif %}
 {% endblock %}
