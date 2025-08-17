@@ -19,31 +19,11 @@ class PostType extends AbstractType
         $builder
             ->add('title', TextType::class, [
                 'label' => 'Titre',
-                'constraints' => [
-                    new Assert\NotBlank([
-                        'message' => 'Le titre ne peut pas être vide.',
-                    ]),
-                    new Assert\Length([
-                        'min' => 5,
-                        'minMessage' => 'Le titre doit contenir au moins {{ limit }} caractères.',
-                        'max' => 60,
-                        'maxMessage' => 'Le titre ne peut pas dépasser {{ limit }} caractères.',
-                    ]),
-                ],
+                'attr' => ['maxlength' => 60, 'placeholder' => 'Titre (max 60)'],
             ])
             ->add('content', TextareaType::class, [
                 'label' => 'Contenu',
-                'constraints' => [
-                    new Assert\NotBlank([
-                        'message' => 'Le contenu ne peut pas être vide.',
-                    ]),
-                    new Assert\Length([
-                        'min' => 10,
-                        'minMessage' => 'Le contenu doit contenir au moins {{ limit }} caractères.',
-                        'max' => 150,
-                        'maxMessage' => 'Le contenu ne peut pas dépasser {{ limit }} caractères.',
-                    ]),
-                ],
+                'attr' => ['maxlength' => 150, 'rows' => 4, 'placeholder' => 'Contenu (max 150)'],
             ]);
     }
 

@@ -9,4 +9,4 @@ E02Controller:
     type: attribute
 E03Bundle:
     resource: '../src/E03Bundle/Controller'
-    type: annotation
+    type: attribute

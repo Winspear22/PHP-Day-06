@@ -16,15 +16,26 @@ class Post
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Assert\NotBlank]
-    #[Assert\Length(max: 60)]
+    #[Assert\NotBlank(message: 'Le titre ne peut pas être vide.')]
+    #[Assert\Length(
+        min: 5,
+        minMessage: 'Le titre doit contenir au moins {{ limit }} caractères.',
+        max: 60,
+        maxMessage: 'Le titre ne peut pas dépasser {{ limit }} caractères.'
+    )]
     #[ORM\Column(length: 60)]
     private ?string $title = null;
-        
-    #[Assert\NotBlank]
-    #[Assert\Length(max: 150)]
+
+    #[Assert\NotBlank(message: 'Le contenu ne peut pas être vide.')]
+    #[Assert\Length(
+        min: 10,
+        minMessage: 'Le contenu doit contenir au moins {{ limit }} caractères.',
+        max: 150,
+        maxMessage: 'Le contenu ne peut pas dépasser {{ limit }} caractères.'
+    )]
     #[ORM\Column(type: Types::TEXT)]
     private ?string $content = null;
+
 
     #[ORM\Column]
     private ?\DateTimeImmutable $created = null;

@@ -25,7 +25,7 @@ class E03Controller extends AbstractController
             if (!$post)
             {
                 $this->addFlash('error', 'Le post demandé est introuvable.');
-                return $this->redirectToRoute('e03_read_all_posts');
+                return $this->redirectToRoute('e01_welcome');
             }
 
             return $this->render('e03/post_details.html.twig', [
@@ -68,7 +68,7 @@ class E03Controller extends AbstractController
                     $em->flush();
 
                     $this->addFlash('success', 'Post créé avec succès !');
-                    return $this->redirectToRoute('e03_read_all_posts');
+                    return $this->redirectToRoute('e01_welcome');
                 }
                 catch (Exception $e)
                 {
@@ -100,7 +100,7 @@ class E03Controller extends AbstractController
             $em->flush();
 
             $this->addFlash('success', 'Post créé avec succès  !');
-            return $this->redirectToRoute('e03_read_all_posts');
+            return $this->redirectToRoute('e01_welcome');
         }
 
         return $this->render('e03/create_post.html.twig', [
