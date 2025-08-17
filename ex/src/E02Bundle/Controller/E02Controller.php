@@ -2,9 +2,11 @@
 
 namespace App\E02Bundle\Controller;
 
+use Exception;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
+use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -41,15 +43,45 @@ class E02Controller extends AbstractController
 		]);
 	}
 
-
-	/*#[Route('/e02/admin/users', name: 'e02_admin_users')]
+	#[Route('/e02/admin/user/{id}/delete', name: 'e02_admin_user_delete', methods: ['POST'])]
 	#[IsGranted('ROLE_ADMIN')]
-	public function listUsers(EntityManagerInterface $em): Response
+	public function deleteUser(User $user, Request $request, ManagerRegistry $doctrine): Response
 	{
-		$users = $em->getRepository(User::class)->findAll();
+		// 1) CSRF
+		if (!$this->isCsrfTokenValid('delete_user_'.$user->getId(), $request->request->get('_token')))
+		{
+			$this->addFlash('error', 'Token CSRF invalide.');
+			return $this->redirectToRoute('e02_admin_panel');
+		}
 
-		return $this->render('e02/users.html.twig', [
-			'users' => $users,
-		]);
-}*/
+		// 2) Interdiction de se supprimer soi-même
+		$current = $this->getUser();
+		if ($current instanceof User && $current->getId() === $user->getId())
+		{
+			$this->addFlash('error', 'Vous ne pouvez pas supprimer votre propre compte.');
+			return $this->redirectToRoute('e02_admin_panel');
+		}
+
+		// 3) Interdiction de supprimer un autre admin
+		if (in_array('ROLE_ADMIN', $user->getRoles(), true))
+		{
+			$this->addFlash('error', 'Vous ne pouvez pas supprimer un autre administrateur.');
+			return $this->redirectToRoute('e02_admin_panel');
+		}
+
+		// 4) Suppression
+		$em = $doctrine->getManager();
+		try
+		{
+			$em->remove($user);
+			$em->flush();
+			$this->addFlash('success', "L'utilisateur {$user->getUsername()} a été supprimé.");
+		}
+		catch (\Throwable $e)
+		{
+			$this->addFlash('error', 'Erreur lors de la suppression : '.$e->getMessage());
+		}
+
+		return $this->redirectToRoute('e02_admin_panel');
+	}
 }

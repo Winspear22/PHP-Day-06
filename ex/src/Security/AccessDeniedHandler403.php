@@ -15,7 +15,10 @@ class AccessDeniedHandler403 implements AccessDeniedHandlerInterface
 
     public function handle(Request $request, AccessDeniedException $accessDeniedException): ?Response
     {
-        $content = $this->twig->render('need_auth.html.twig');
+        // Ajout d'un flash via la session (et pas addFlash)
+        if ($request->hasSession())
+            $request->getSession()->getFlashBag()->add('info', 'Vous ne pouvez pas accéder à cette page.');
+        $content = $this->twig->render('access_denied.html.twig');
         return new Response($content, 403);
     }
 }

@@ -1,0 +1,12 @@
+{# templates/security/forbidden.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Accès refusé{% endblock %}
+
+{% block body %}
+
+<h1>Accès refusé - ERROR 403</h1>
+<p>Cette page est réservée aux administrateurs (petit malin).</p>
+<p><a href="{{ path('e01_index') }}">Retour à l’accueil</a></p>
+
+{% endblock %}

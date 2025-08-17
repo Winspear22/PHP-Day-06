@@ -26,14 +26,29 @@
     </thead>
     <tbody>
     {% for u in users %}
-        <tr>
-            <td>{{ u.id }}</td>
-            <td>{{ u.username }}</td>
-            <td>{{ u.roles|join(', ') }}</td>
-        </tr>
+    <tr>
+        <td>{{ u.id }}</td>
+        <td>{{ u.username }}</td>
+        <td>{{ u.roles|join(', ') }}</td>
+        <td>
+            {% if app.user.id == u.id %}
+                <em>Impossible de se supprimer soi-même</em>
+            {% elseif 'ROLE_ADMIN' in u.roles %}
+                <em>Impossible de supprimer un autre admin</em>
+            {% else %}
+                <form method="post" action="{{ path('e02_admin_user_delete', {id: u.id}) }}" onsubmit="return confirm('Supprimer {{ u.username }} ?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_user_' ~ u.id) }}">
+                    <button type="submit">Supprimer</button>
+                </form>
+            {% endif %}
+        </td>
+    </tr>
     {% else %}
-        <tr><td colspan="3"><em>Aucun utilisateur</em></td></tr>
+        <tr><td colspan="4"><em>Aucun utilisateur</em></td></tr>
     {% endfor %}
+        
     </tbody>
 </table>
+<br>
+<a href="{{path('e01_welcome')}}">Retour à la page welcome</a>
 {% endblock %}
