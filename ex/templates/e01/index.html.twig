@@ -3,13 +3,26 @@
 {% block title %}Accueil{% endblock %}
 
 {% block body %}
+    <h1>Index (e01)</h1>
     <h1>{{ message }}</h1>
+
     {% if app.user %}
 		<p> Coucou, tu es connecté {{ app.user.userIdentifier }} ! (Ceci est un message du front).</p> 
         <p> Tu es en ce moment sur la page de l'index.</p>
         <a href="{{ path('e01_welcome') }}">Retourner sur la page de bienvenue</a>
         <a href="{{ path('app_logout') }}">Se déconnecter</a>
     {% else %}
+        {% if exercise is defined and exercise == 'E04' %}
+            <h1>e04 – Test étape B</h1>
+            <p>Tu es sur l'index, version ex04.</p>
+
+            {% if e04_anon_name %}
+                <p><strong>Pseudo anonyme :</strong> {{ e04_anon_name }}</p>
+            {% endif %}
+
+            <p>Nombre de secondes depuis la dernière requête : {{ e04_seconds_since }}</p>
+        {% endif %}
+
 		<p> Connecte toi ou inscris toi, jeune inconnu ! (Ceci est un message du front).</p> 
         <a href="{{ path('app_login') }}">Se connecter</a> |
         <a href="{{ path('app_register') }}">S'inscrire</a>

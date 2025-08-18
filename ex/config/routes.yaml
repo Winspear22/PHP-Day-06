@@ -10,3 +10,7 @@ E02Controller:
 E03Bundle:
     resource: '../src/E03Bundle/Controller'
     type: attribute
+
+E04Bundle:
+    resource: '../src/E04Bundle/Controller'
+    type: attribute
