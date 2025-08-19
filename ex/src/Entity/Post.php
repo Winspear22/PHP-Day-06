@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\PostRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -41,7 +43,25 @@ class Post
     private ?\DateTimeImmutable $created = null;
 
     #[ORM\ManyToOne(inversedBy: 'posts')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $author = null;
+
+    #[ORM\OneToMany(targetEntity: Vote::class, mappedBy: 'post', cascade: ['remove'], orphanRemoval: true)]
+    private Collection $votes;
+
+    public function countLikes(): int
+    {
+        $c = 0; foreach ($this->votes as $v) { if ($v->isLike()) { ++$c; } } return $c;
+    }
+    public function countDislikes(): int
+    {
+        $c = 0; foreach ($this->votes as $v) { if (!$v->isLike()) { ++$c; } } return $c;
+    }
+
+    public function __construct()
+    {
+        $this->votes = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -92,6 +112,36 @@ class Post
     public function setAuthor(?User $author): static
     {
         $this->author = $author;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Vote>
+     */
+    public function getVotes(): Collection
+    {
+        return $this->votes;
+    }
+
+    public function addVote(Vote $vote): static
+    {
+        if (!$this->votes->contains($vote)) {
+            $this->votes->add($vote);
+            $vote->setPost($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVote(Vote $vote): static
+    {
+        if ($this->votes->removeElement($vote)) {
+            // set the owning side to null (unless already changed)
+            if ($vote->getPost() === $this) {
+                $vote->setPost(null);
+            }
+        }
 
         return $this;
     }
