@@ -328,7 +328,7 @@ class E02Controller extends AbstractController
 		{
 			$message = "Error, we could not get the users list : " . $e->getMessage();
 			$this->addFlash('danger', $message);
-			return $this->redirectToRoute('e02_admin_panel');
+			return $this->redirectToRoute('e01_index');
 		}
 
 		return $this->render('e02/panel.html.twig', [
@@ -1047,7 +1047,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
     new ORM\UniqueConstraint(name: 'uniq_vote_user_post', columns: ['user_id', 'post_id'])
 ])]
 #[UniqueEntity(fields: ['user', 'post'], message: 'Vous avez déjà voté pour ce post.')]
-final class Vote
+class Vote
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
