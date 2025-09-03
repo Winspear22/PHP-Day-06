@@ -1,0 +1,397 @@
+
+────────────────────────────────────────────
+📂 templates
+└── 📄 access_denied.html.twig
+────────────────────────────────────────────
+{# templates/security/forbidden.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Accès refusé{% endblock %}
+
+{% block body %}
+
+<h1>Accès refusé - ERROR 403</h1>
+<p>Cette page est réservée aux administrateurs (petit malin).</p>
+<p><a href="{{ path('e01_index') }}">Retour à l’accueil</a></p>
+
+{% endblock %}
+
+
+
+────────────────────────────────────────────
+📂 templates
+└── 📄 base.html.twig
+────────────────────────────────────────────
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}Welcome!{% endblock %}</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+        {% block stylesheets %}
+            <link rel="stylesheet" href="{{ asset('style.css') }}">
+        {% endblock %}
+        {% block javascripts %}{% endblock %}
+    </head>
+    <body>
+
+        {# Affichage de tous les messages flash #}
+        {#{% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}#}
+        {# base.html.twig #}
+{% for label, messages in app.flashes %}
+    {% set cssLabel = label == 'error' ? 'danger' : label %}
+    {% for message in messages %}
+        <div class="alert alert-{{ cssLabel }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endfor %}
+
+
+        {% block body %}{% endblock %}
+    </body>
+</html>
+
+
+
+────────────────────────────────────────────
+📂 templates/e01
+└── 📄 index.html.twig
+────────────────────────────────────────────
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block body %}
+    <h1>Index (e01)</h1>
+    <h1>{{ message }}</h1>
+
+    {% if app.user %}
+		<p> Coucou, tu es connecté {{ app.user.userIdentifier }} ! (Ceci est un message du front).</p> 
+        <p> Tu es en ce moment sur la page de l'index.</p>
+        <a href="{{ path('e01_welcome') }}">Retourner sur la page de bienvenue</a>
+        <a href="{{ path('app_logout') }}">Se déconnecter</a>
+    {% else %}
+        {% if exercise is defined and exercise == 'E04' %}
+            <h1>e04 – Test étape B</h1>
+            <p>Tu es sur l'index, version ex04.</p>
+
+            {% if e04_anon_name %}
+                <p><strong>Pseudo anonyme :</strong> {{ e04_anon_name }}</p>
+            {% endif %}
+
+            <p>Nombre de secondes depuis la dernière requête : {{ e04_seconds_since }}</p>
+        {% endif %}
+
+		<p> Connecte toi ou inscris toi, jeune inconnu ! (Ceci est un message du front).</p> 
+        <a href="{{ path('app_login') }}">Se connecter</a> |
+        <a href="{{ path('app_register') }}">S'inscrire</a>
+    {% endif %}
+{% endblock %}
+
+
+────────────────────────────────────────────
+📂 templates/e01
+└── 📄 welcome.html.twig
+────────────────────────────────────────────
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block body %}
+    <h1>{{ message }}</h1>
+
+    {% if app.user %}
+        <p>Coucou, tu es connecté {{ app.user.userIdentifier }} ! (Ceci est un message du front).</p> 
+        <p>Tu as bien pu accéder à la page Welcome après t'être connecté !</p>
+        <p>Ton rôle est : {{ app.user.roles|join(', ') }}</p>
+
+        {% if is_granted('ROLE_ADMIN') %}
+            <p>Vu que tu es admin, tu peux avoir accès à ce panneau de configuration :</p>
+            <a href="{{ path('e02_admin_panel') }}">Panneau d'administration</a>
+            <br>
+        {% else %}
+            <p>Malheureusement, tu n'es pas administrateur, tu ne peux donc pas accéder au panneau d'administration.</p>
+        {% endif %}
+
+        <hr>
+
+        <h2>📜 Liste des posts</h2>
+
+        {% if posts is defined and posts|length > 0 %}
+            <table border="1" cellpadding="5">
+                <thead>
+                    <tr>
+                        <th>Titre</th>
+                        <th>Auteur</th>
+                        <th>Date</th>
+                        <th>Content</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for post in posts %}
+                        <tr>
+                            <td>
+                                <a href="{{ path('e03_read_post_details', {id: post.id}) }}">
+                                    {{ post.title }}
+                                </a>
+                            </td>
+                            <td>{{ post.author.username }}</td>
+                            <td>{{ post.created|date('d/m/Y H:i') }}</td>
+                            <td>{{ post.content }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p><em>Aucun post pour le moment.</em></p>
+        {% endif %}
+
+        <br>
+        <a href="{{ path('e03_create_post') }}">✍️ Créer un nouveau post</a>
+        <br><br>
+
+        <a href="{{ path('e01_index') }}">Retourner à l'index</a> |
+        <a href="{{ path('app_logout') }}">Se déconnecter</a>
+    {% endif %}
+{% endblock %}
+
+
+
+────────────────────────────────────────────
+📂 templates/e02
+└── 📄 panel.html.twig
+────────────────────────────────────────────
+{% extends 'base.html.twig' %}
+
+{% block title %}Exercice 02{% endblock %}
+
+{% block body %}
+<h1>Panneau d'administration</h1>
+
+<p>Bienvenu sur le panneau d'administration {{ app.user.userIdentifier }} !</p>
+<p>Etant donné que tu es administrateur, tu peux :</p>
+<ol>
+	<li>Connaître la liste des utilisateurs</li>
+	<li>Supprimer les utilisateurs</li>
+</ol>
+<p>Attention, tu ne peux toutefois pas :</p>
+<ol>
+	<li>Te supprimer toi-même</li>
+	<li>Supprimer un autre administrateur</li>
+<h3>Liste des utilisateurs</h3>
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nom d'utilisateur</th>
+            <th>Rôles</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for u in users %}
+    <tr>
+        <td>{{ u.id }}</td>
+        <td>{{ u.username }}</td>
+        <td>{{ u.roles|join(', ') }}</td>
+        <td>
+            {% if app.user.id == u.id %}
+                <em>Impossible de se supprimer soi-même</em>
+            {% elseif 'ROLE_ADMIN' in u.roles %}
+                <em>Impossible de supprimer un autre admin</em>
+            {% else %}
+                <form method="post" action="{{ path('e02_admin_user_delete', {id: u.id}) }}" onsubmit="return confirm('Supprimer {{ u.username }} ?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_user_' ~ u.id) }}">
+                    <button type="submit">Supprimer</button>
+                </form>
+            {% endif %}
+        </td>
+    </tr>
+    {% else %}
+        <tr><td colspan="4"><em>Aucun utilisateur</em></td></tr>
+    {% endfor %}
+        
+    </tbody>
+</table>
+<br>
+<a href="{{path('e01_welcome')}}">Retour à la page welcome</a>
+{% endblock %}
+
+
+────────────────────────────────────────────
+📂 templates/e03
+└── 📄 create_post.html.twig
+────────────────────────────────────────────
+{% extends 'base.html.twig' %}
+
+{% block title %}Créer un Post{% endblock %}
+
+{% block body %}
+<h1>Créer un nouveau Post</h1>
+
+{{ form_start(form) }}
+    {{ form_label(form.title) }}
+    {{ form_widget(form.title) }}
+
+    {{ form_label(form.content) }}
+    {{ form_widget(form.content) }}
+
+    <button type="submit" class="btn">Publier</button>
+{{ form_end(form) }}
+
+<br>
+<a href="{{ path('e01_welcome') }}">Retour aux posts</a>
+{% endblock %}
+
+
+
+────────────────────────────────────────────
+📂 templates/e03
+└── 📄 post_details.html.twig
+────────────────────────────────────────────
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails du post{% endblock %}
+
+{% block body %}
+    <h1>{{ post.title }}</h1>
+    <p><strong>Auteur :</strong> {{ post.author.username }}</p>
+    <p><strong>Date :</strong> {{ post.created|date('d/m/Y H:i') }}</p>
+    <p>{{ post.content }}</p>
+
+    <br>
+    <a href="{{ path('e01_welcome') }}">Retour aux posts</a>
+{% endblock %}
+
+
+
+────────────────────────────────────────────
+📂 templates
+└── 📄 need_auth.html.twig
+────────────────────────────────────────────
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion requise{% endblock %}
+
+{% block body %}
+    <h1>{{ message }} - Error 401</h1>
+    <p>
+        <a href="{{ path('app_login') }}">Se connecter</a> |
+        <a href="{{ path('app_register') }}">S'inscrire</a>
+    </p>
+    <a href="{{ path('e01_index') }}" class="btn btn-secondary">Retour à l'accueil</a>
+
+{% endblock %}
+
+
+────────────────────────────────────────────
+📂 templates/registration
+└── 📄 register.html.twig
+────────────────────────────────────────────
+{% extends 'base.html.twig' %}
+
+{% block title %}Register{% endblock %}
+
+{% block body %}
+
+{#{% for msg in app.flashes('success') %}
+    <div class="alert alert-success">{{ msg }}</div>
+{% endfor %}
+{% for msg in app.flashes('error') %}
+    <div class="alert alert-danger">{{ msg }}</div>
+{% endfor %}#}
+
+<h1>Register</h1>
+
+{{ form_start(registrationForm) }}
+
+    {{ form_label(registrationForm.username) }}
+    {{ form_widget(registrationForm.username) }}
+
+    {{ form_label(registrationForm.plainPassword, 'Password') }}
+    {{ form_widget(registrationForm.plainPassword) }}
+
+    {{ form_label(registrationForm.agreeTerms) }}
+    {{ form_widget(registrationForm.agreeTerms) }}
+
+    <button type="submit" class="btn">Register</button>
+{{ form_end(registrationForm) }}
+
+<br>
+<a href="{{ path('e01_index') }}" class="btn btn-secondary">Retour à l'accueil</a>
+{% endblock %}
+
+
+
+────────────────────────────────────────────
+📂 templates/security
+└── 📄 login.html.twig
+────────────────────────────────────────────
+{% extends 'base.html.twig' %}
+
+{% block title %}Log in!{% endblock %}
+
+{% block body %}
+    <form method="post" action="{{ path('app_login') }}">
+        {% if error %}
+            <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+        {% endif %}
+
+        {% if app.user %}
+            <div class="mb-3">
+                You are logged in as {{ app.user.userIdentifier }}, <a href="{{ path('app_logout') }}">Logout</a>
+            </div>
+        {% endif %}
+
+        <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
+        <label for="username">Username</label>
+        <input type="text" value="{{ last_username }}" name="_username" id="username" class="form-control" autocomplete="username" required autofocus>
+        <label for="password">Password</label>
+        <input type="password" name="_password" id="password" class="form-control" autocomplete="current-password" required>
+        <input type="hidden" name="_csrf_token" data-controller="csrf-protection" value="{{ csrf_token('authenticate') }}">
+
+        {#
+            Uncomment this section and add a remember_me option below your firewall to activate remember me functionality.
+            See https://symfony.com/doc/current/security/remember_me.html
+
+            <div class="checkbox mb-3">
+                <input type="checkbox" name="_remember_me" id="_remember_me">
+                <label for="_remember_me">Remember me</label>
+            </div>
+        #}
+
+        <button class="btn btn-lg btn-primary" type="submit">
+            Sign in
+        </button>
+    </form>
+    <a href="{{ path('e01_index') }}" class="btn btn-secondary">Retour à l'accueil</a>
+
+{% endblock %}
+
+
+
+────────────────────────────────────────────
+📂 public
+└── 📄 style.css
+────────────────────────────────────────────
+.alert {
+    padding: 1em 1.5em;
+    margin: 1em 0;
+    border-radius: 5px;
+    font-weight: bold;
+    box-shadow: 0 1px 7px #aaa1;
+    font-size: 1.2em; /* plus gros */
+}
+
+.alert-success { background: #d4edda; color: #155724; border-left: 7px solid #38a169; }
+.alert-danger { background: #f8d7da; color: #721c24; border-left: 7px solid #e53e3e; }
+.alert-info { background: #ffee00; color: #000000; border-left: 7px solid #d8db38; }
+.alert-note { background: blue; color: #000000; border-left: 7px solid #3848db; }
+
+

@@ -12,7 +12,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
     new ORM\UniqueConstraint(name: 'uniq_vote_user_post', columns: ['user_id', 'post_id'])
 ])]
 #[UniqueEntity(fields: ['user', 'post'], message: 'Vous avez déjà voté pour ce post.')]
-final class Vote
+class Vote
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]

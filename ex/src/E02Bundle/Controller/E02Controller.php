@@ -36,7 +36,7 @@ class E02Controller extends AbstractController
 		{
 			$message = "Error, we could not get the users list : " . $e->getMessage();
 			$this->addFlash('danger', $message);
-			return $this->redirectToRoute('e02_admin_panel');
+			return $this->redirectToRoute('e01_index');
 		}
 
 		return $this->render('e02/panel.html.twig', [

@@ -1,0 +1,1603 @@
+
+────────────────────────────────────────────
+📂 src/Controller
+└── 📄 E01Controller.php
+────────────────────────────────────────────
+<?php
+
+namespace App\Controller;
+
+use Exception;
+use App\Entity\Post;
+use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+
+class E01Controller extends AbstractController
+{
+    #[Route('/e01', name: 'e01_index')]
+    public function index(): Response
+    {
+		if ($this->getUser())
+            $message = 'Bienvenue sur la page E01 (Ceci est un message du controller).';
+		else
+            $message = 'Bienvenue, visiteur ! (Ceci est un message du controller).';
+        return $this->render('e01/index.html.twig', [
+            'message' => $message,
+        ]);
+    }
+    
+    #[Route('/e01/need_auth', name: 'e01_need_auth')]
+    public function need_auth(): Response
+    {
+        return $this->render('need_auth.html.twig', [
+            'message' => 'Vous n\'êtes pas connecté ! (Ceci est un message du controller).',
+        ]);
+    }
+
+    #[Route('/e01/welcome', name: 'e01_welcome')]
+    #[IsGranted('ROLE_USER')]
+    public function welcome(ManagerRegistry $doctrine): Response
+    {
+        try
+        {
+            $posts = $doctrine->getRepository(Post::class)->findBy([], ['created' => 'DESC']);
+
+            return $this->render('e01/welcome.html.twig', [
+                'message' => 'Bienvenue sur la page Welcome ! (Ceci est un message du controller).',
+                'posts' => $posts,
+            ]);
+        }
+        catch (Exception $e)
+        {
+            $this->addFlash('error', 'Erreur, nous n\'avons pas pu récupérer les messages : ' . $e->getMessage());
+            return $this->redirectToRoute('e01_index');
+        }
+    }
+        
+	
+	/*#[Route('/e01/welcome', name: 'e01_welcome')]
+    #[IsGranted('ROLE_USER')]
+    public function welcome(): Response
+    {
+        return $this->render('e01/welcome.html.twig', [
+            'message' => 'Bienvenue sur la page Welcome ! (Ceci est un message du controller).',
+        ]);
+    }*/
+}
+
+
+
+────────────────────────────────────────────
+📂 src/Controller
+└── 📄 .gitignore
+────────────────────────────────────────────
+
+
+
+────────────────────────────────────────────
+📂 src/Controller
+└── 📄 RegistrationController.php
+────────────────────────────────────────────
+<?php
+
+namespace App\Controller;
+
+use Throwable;
+use App\Entity\User;
+use App\Form\RegistrationFormType;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+
+class RegistrationController extends AbstractController
+{
+    /*#[Route('/e01/register', name: 'app_register')]
+    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, Security $security, EntityManagerInterface $entityManager): Response
+    {
+        $user = new User();
+        $form = $this->createForm(RegistrationFormType::class, $user);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) 
+        {*/
+            /** @var string $plainPassword */
+            /*$plainPassword = $form->get('plainPassword')->getData();
+
+            $user->setPassword($userPasswordHasher->hashPassword($user, $plainPassword));
+
+            $entityManager->persist($user);
+            $entityManager->flush();
+
+            $security->login($user, 'form_login', 'main');
+            return $this->redirectToRoute('e01_index');
+        }
+
+        return $this->render('registration/register.html.twig', [
+            'registrationForm' => $form,
+        ]);
+    }*/
+
+    #[Route('/e01/register', name: 'app_register')]
+    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): Response
+    {
+        $user = new User();
+        $form = $this->createForm(RegistrationFormType::class, $user);
+        $form->handleRequest($request);
+
+        if ($this->getUser())
+        {
+            $this->addFlash('error', 'Vous êtes déjà connecté. Déconnectez-vous pour créer un autre compte.');
+            return $this->redirectToRoute('e01_index');
+        }
+
+        if ($form->isSubmitted())
+        {
+            if (!$form->isValid())
+            {
+                foreach ($form->getErrors(true) as $error)
+                    $this->addFlash('error', $error->getMessage());
+            }
+            else
+            {
+                try
+                {
+                    $user->setPassword(
+                        $userPasswordHasher->hashPassword(
+                            $user,
+                            $form->get('plainPassword')->getData()
+                        )
+                    );
+                    $user->setRoles(['ROLE_USER']);
+                    $entityManager->persist($user);
+                    $entityManager->flush();
+
+                    $this->addFlash('success', 'Compte créé avec succès !');
+                    return $this->redirectToRoute('e01_index');
+                }
+                catch (UniqueConstraintViolationException $e)
+                {
+                    $this->addFlash('error', 'Ce nom d’utilisateur est déjà pris.');
+                }
+                catch (Throwable $e)
+                {
+                    $this->addFlash('error', 'Erreur lors de la création du compte : '.$e->getMessage());
+                }
+            }
+        }
+
+        return $this->render('registration/register.html.twig', [
+            'registrationForm' => $form->createView(),
+        ]);
+    }
+}
+
+
+
+────────────────────────────────────────────
+📂 src/Controller
+└── 📄 SecurityController.php
+────────────────────────────────────────────
+<?php
+
+namespace App\Controller;
+
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+
+class SecurityController extends AbstractController
+{
+    #[Route(path: '/e01/login', name: 'app_login')]
+    public function login(AuthenticationUtils $authenticationUtils): Response
+    {
+        if ($this->getUser())
+        {
+            $username = $this->getUser()->getUserIdentifier();
+            $this->addFlash('error', "Tu es déjà connecté $username !");
+            return $this->redirectToRoute('e01_index');
+        }
+        // get the login error if there is one
+        $error = $authenticationUtils->getLastAuthenticationError();
+
+        // last username entered by the user
+        $lastUsername = $authenticationUtils->getLastUsername();
+
+        return $this->render('security/login.html.twig', [
+            'last_username' => $lastUsername,
+            'error' => $error,
+        ]);
+    }
+
+    #[Route(path: '/e01/logout', name: 'app_logout')]
+    public function logout(): void
+    {
+        throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
+    }
+}
+
+
+
+────────────────────────────────────────────
+📂 src/DataFixtures
+└── 📄 AppFixtures.php
+────────────────────────────────────────────
+<?php
+
+namespace App\DataFixtures;
+
+use App\Entity\User;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+
+class AppFixtures extends Fixture
+{
+    private UserPasswordHasherInterface $hasher;
+
+    public function __construct(UserPasswordHasherInterface $hasher)
+    {
+        $this->hasher = $hasher;
+    }
+
+    public function load(ObjectManager $manager): void
+    {
+        // Utilisateur normal
+        $user = new User();
+        $user->setUsername('user42');
+        $user->setRoles(['ROLE_USER']);
+        $user->setPassword($this->hasher->hashPassword($user, 'user42'));
+        $manager->persist($user);
+
+        for ($i = 1; $i <= 10; $i++)
+        {
+            $u = new User();
+            $u->setUsername("user$i");
+            $u->setRoles(['ROLE_USER']);
+            $u->setPassword($this->hasher->hashPassword($u, 'user42'));
+            $manager->persist($u);
+        }
+
+        // Administrateur
+        $admin = new User();
+        $admin->setUsername('admin42');
+        $admin->setRoles(['ROLE_ADMIN']); // clé ici !
+        $admin->setPassword($this->hasher->hashPassword($admin, 'admin42'));
+        $manager->persist($admin);
+
+        $admin = new User();
+        $admin->setUsername('admin21');
+        $admin->setRoles(['ROLE_ADMIN']); // clé ici !
+        $admin->setPassword($this->hasher->hashPassword($admin, 'admin21'));
+        $manager->persist($admin);
+
+
+
+        $manager->flush();
+    }
+}
+
+
+
+────────────────────────────────────────────
+📂 src/E02Bundle/Controller
+└── 📄 E02Controller.php
+────────────────────────────────────────────
+<?php
+
+namespace App\E02Bundle\Controller;
+
+use Exception;
+use Throwable;
+use App\Entity\User;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+
+class E02Controller extends AbstractController
+{
+	#[Route('/e02', name: 'ex02_index')]
+	public function index(): Response
+	{
+		$message = "Bienvenue sur la page E02.";
+		return $this->render('e01/index.html.twig', [
+			'message' => $message
+		]);
+	}
+
+	#[Route('/e02/admin', name: 'e02_admin_panel')]
+	#[IsGranted('ROLE_ADMIN')]
+	public function panel(EntityManagerInterface $em): Response
+	{
+		try
+		{
+			$users = $em->getRepository(User::class)->findAll();
+		}
+		catch (Exception $e)
+		{
+			$message = "Error, we could not get the users list : " . $e->getMessage();
+			$this->addFlash('danger', $message);
+			return $this->redirectToRoute('e02_admin_panel');
+		}
+
+		return $this->render('e02/panel.html.twig', [
+			'users' => $users,
+		]);
+	}
+
+	#[Route('/e02/admin/user/{id}/delete', name: 'e02_admin_user_delete', methods: ['POST'])]
+	#[IsGranted('ROLE_ADMIN')]
+	public function deleteUser(User $user, Request $request, ManagerRegistry $doctrine): Response
+	{
+		// 1) CSRF
+		if (!$this->isCsrfTokenValid('delete_user_'.$user->getId(), $request->request->get('_token')))
+		{
+			$this->addFlash('error', 'Token CSRF invalide.');
+			return $this->redirectToRoute('e02_admin_panel');
+		}
+
+		// 2) Interdiction de se supprimer soi-même
+		$current = $this->getUser();
+		if ($current instanceof User && $current->getId() === $user->getId())
+		{
+			$this->addFlash('error', 'Vous ne pouvez pas supprimer votre propre compte.');
+			return $this->redirectToRoute('e02_admin_panel');
+		}
+
+		// 3) Interdiction de supprimer un autre admin
+		if (in_array('ROLE_ADMIN', $user->getRoles(), true))
+		{
+			$this->addFlash('error', 'Vous ne pouvez pas supprimer un autre administrateur.');
+			return $this->redirectToRoute('e02_admin_panel');
+		}
+
+		// 4) Suppression
+		$em = $doctrine->getManager();
+		try
+		{
+			$em->remove($user);
+			$em->flush();
+			$this->addFlash('success', "L'utilisateur {$user->getUsername()} a été supprimé.");
+		}
+		catch (Throwable $e)
+		{
+			$this->addFlash('error', 'Erreur lors de la suppression : '.$e->getMessage());
+		}
+
+		return $this->redirectToRoute('e02_admin_panel');
+	}
+}
+
+
+
+────────────────────────────────────────────
+📂 src/E02Bundle
+└── 📄 E02Bundle.php
+────────────────────────────────────────────
+<?php
+namespace App\E02Bundle;
+
+use Symfony\Component\HttpKernel\Bundle\Bundle;
+
+class E02Bundle extends Bundle {}
+
+
+
+────────────────────────────────────────────
+📂 src/E03Bundle/Controller
+└── 📄 E03Controller.php
+────────────────────────────────────────────
+<?php
+
+namespace App\E03Bundle\Controller;
+
+use Exception;
+use App\Entity\Post;
+use App\Form\PostType;
+use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+
+class E03Controller extends AbstractController
+{
+    #[Route('/e03/read_post_details/{id}', name: 'e03_read_post_details', requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_USER')]
+    public function readPostDetails(int $id, ManagerRegistry $doctrine): Response
+    {
+        try
+        {
+            $post = $doctrine->getRepository(Post::class)->find($id);
+
+            if (!$post)
+            {
+                $this->addFlash('error', 'Le post demandé est introuvable.');
+                return $this->redirectToRoute('e01_welcome');
+            }
+
+            return $this->render('e03/post_details.html.twig', [
+                'post' => $post,
+            ]);
+        }
+        catch (Exception $e)
+        {
+            $this->addFlash('error', 'Erreur, il y\'a eu un soucis dans l\'affichage du message : ' . $e->getMessage());
+            return $this->redirectToRoute('e01_index');
+        }
+    }
+    
+    #[Route('/e03/create_post', name: 'e03_create_post')]
+    #[IsGranted('ROLE_USER')]
+    public function createPost(Request $request, ManagerRegistry $doctrine): Response
+    {
+        $post = new Post();
+        $form = $this->createForm(PostType::class, $post);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted())
+        {
+            if (!$form->isValid())
+            {
+                // On parcourt toutes les erreurs et on les envoie en flash
+                foreach ($form->getErrors(true) as $error) {
+                    $this->addFlash('error', $error->getMessage());
+                }
+            }
+            else
+            {
+                try
+                {
+                    $post->setAuthor($this->getUser()); // auteur = user connecté
+                    $post->setCreated(new \DateTimeImmutable());
+
+                    $em = $doctrine->getManager();
+                    $em->persist($post);
+                    $em->flush();
+
+                    $this->addFlash('success', 'Post créé avec succès !');
+                    return $this->redirectToRoute('e01_welcome');
+                }
+                catch (Exception $e)
+                {
+                    $this->addFlash('error', 'Erreur lors de la création du post : '.$e->getMessage());
+                }
+            }
+        }
+        return $this->render('e03/create_post.html.twig', [
+            'form' => $form->createView(),
+        ]);
+    }
+
+    /*#[Route('/e03/create_post', name: 'e03_create_post')]
+    #[IsGranted('ROLE_USER')]
+    public function createPost(Request $request, ManagerRegistry $doctrine): Response
+    {
+        $post = new Post();
+        $form = $this->createForm(PostType::class, $post);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid())
+            {
+            $post->setAuthor($this->getUser()); // auteur = utilisateur connecté
+            $post->setCreated(new \DateTimeImmutable());
+
+            $em = $doctrine->getManager();
+            $em->persist($post);
+            $em->flush();
+
+            $this->addFlash('success', 'Post créé avec succès  !');
+            return $this->redirectToRoute('e01_welcome');
+        }
+
+        return $this->render('e03/create_post.html.twig', [
+            'form' => $form->createView(),
+        ]);
+    }*/
+}
+
+
+
+────────────────────────────────────────────
+📂 src/E03Bundle
+└── 📄 E03Bundle.php
+────────────────────────────────────────────
+<?php
+
+namespace App\E03Bundle;
+
+use Symfony\Component\HttpKernel\Bundle\Bundle;
+
+class E03Bundle extends Bundle
+{
+}
+
+
+
+────────────────────────────────────────────
+📂 src/E04Bundle/Controller
+└── 📄 E04Controller.php
+────────────────────────────────────────────
+<?php
+
+namespace App\E04Bundle\Controller;
+
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+
+final class E04Controller extends AbstractController
+{
+    #[Route('/e04', name: 'e04_index')]
+    public function index(Request $request): Response
+    {
+        $message = 'Bienvenue, visiteur ! (Ceci est un message du controller).';
+        return $this->render('e01/index.html.twig', [
+            'message' =>$message,
+            'exercise'          => 'E04',
+            'e04_seconds_since' => (int) $request->attributes->get('e04_seconds_since_last', 0),
+            'e04_anon_name'     => $request->attributes->get('e04_anon_name'),
+        ]);
+
+    }
+}
+
+
+
+────────────────────────────────────────────
+📂 src/E04Bundle
+└── 📄 E04Bundle.php
+────────────────────────────────────────────
+<?php
+
+namespace App\E04Bundle;
+
+use Symfony\Component\HttpKernel\Bundle\Bundle;
+
+class E04Bundle extends Bundle
+{
+}
+
+
+
+────────────────────────────────────────────
+📂 src/E04Bundle/EventSubscriber
+└── 📄 E04EventSubscriber.php
+────────────────────────────────────────────
+<?php 
+
+namespace App\E04Bundle\EventSubscriber;
+
+use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+
+final class E04EventSubscriber implements EventSubscriberInterface
+{
+	private const TTL_SECONDS = 60;
+	
+	public function __construct(
+        private TokenStorageInterface $tokenStorage
+    ) {}
+
+	public static function getSubscribedEvents()
+	{
+		return [ KernelEvents::REQUEST => 'onKernelRequest' ];
+	}
+
+	public function onKernelRequest(RequestEvent $event): void
+	{
+		// 1) Seulement la requête principale
+		if (!$event->isMainRequest())
+			return;
+
+		$request = $event->getRequest();
+
+		// 2) Ne s’applique que sur l’espace /e04
+		if (!str_starts_with($request->getPathInfo(), '/e04'))
+			return;
+
+		    // 3) Session
+		$session = $request->getSession();
+		if (!$session->isStarted())
+			$session->start();
+		
+
+		// 4) Calcul du temps écoulé
+		$now  = time();
+		$prev = $session->get('e04.last_request_at'); // int|null
+		$secondsSinceLast = is_int($prev) ? max(0, $now - $prev) : 0;
+
+		// 5) Déterminer si connecté
+		$token = $this->tokenStorage->getToken();
+		$isLoggedIn = $token && \is_object($token->getUser());
+
+		// 6) Gérer le pseudo anonyme si NON connecté
+		if (!$isLoggedIn) {
+			$currentName = $session->get('e04.anon_name'); // string|null
+
+			// Première visite ou inactivité > TTL → réassigne un nom et reset compteur
+			if (!\is_string($currentName) || $secondsSinceLast > self::TTL_SECONDS) {
+				// (bonus sécu) rotation d'ID pour éviter fixation de session
+				$session->migrate(true);
+
+				$currentName = 'Anonymous ' . $this->randomAnimal();
+				$secondsSinceLast = 0; // on repart à 0
+				$session->set('e04.anon_name', $currentName);
+			}
+
+			// Exposer à la requête pour le contrôleur/Twig
+			$request->attributes->set('e04_anon_name', $currentName);
+		} else {
+			// Connecté → pas de pseudo anonyme
+			$request->attributes->set('e04_anon_name', null);
+		}
+
+		// 7) Exposer le compteur + maj timestamp
+		$request->attributes->set('e04_seconds_since_last', $secondsSinceLast);
+		$session->set('e04.last_request_at', $now);
+	}
+
+	private function randomAnimal(): string
+	{
+		static $animals = ['cat','dog','fox','panda','owl','eagle','wolf','bear','lynx','otter'];
+		return $animals[array_rand($animals)];
+	}
+
+}
+
+?>
+
+
+────────────────────────────────────────────
+📂 src/Entity
+└── 📄 .gitignore
+────────────────────────────────────────────
+
+
+
+────────────────────────────────────────────
+📂 src/Entity
+└── 📄 Post.php
+────────────────────────────────────────────
+<?php
+
+namespace App\Entity;
+
+use App\Repository\PostRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+
+
+#[ORM\Entity(repositoryClass: PostRepository::class)]
+class Post
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[Assert\NotBlank(message: 'Le titre ne peut pas être vide.')]
+    #[Assert\Length(
+        min: 5,
+        minMessage: 'Le titre doit contenir au moins {{ limit }} caractères.',
+        max: 60,
+        maxMessage: 'Le titre ne peut pas dépasser {{ limit }} caractères.'
+    )]
+    #[ORM\Column(length: 60)]
+    private ?string $title = null;
+
+    #[Assert\NotBlank(message: 'Le contenu ne peut pas être vide.')]
+    #[Assert\Length(
+        min: 10,
+        minMessage: 'Le contenu doit contenir au moins {{ limit }} caractères.',
+        max: 150,
+        maxMessage: 'Le contenu ne peut pas dépasser {{ limit }} caractères.'
+    )]
+    #[ORM\Column(type: Types::TEXT)]
+    private ?string $content = null;
+
+
+    #[ORM\Column]
+    private ?\DateTimeImmutable $created = null;
+
+    #[ORM\ManyToOne(inversedBy: 'posts')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    private ?User $author = null;
+
+    #[ORM\OneToMany(targetEntity: Vote::class, mappedBy: 'post', cascade: ['remove'], orphanRemoval: true)]
+    private Collection $votes;
+
+    public function countLikes(): int
+    {
+        $c = 0; foreach ($this->votes as $v) { if ($v->isLike()) { ++$c; } } return $c;
+    }
+    public function countDislikes(): int
+    {
+        $c = 0; foreach ($this->votes as $v) { if (!$v->isLike()) { ++$c; } } return $c;
+    }
+
+    public function __construct()
+    {
+        $this->votes = new ArrayCollection();
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(string $title): static
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    public function getContent(): ?string
+    {
+        return $this->content;
+    }
+
+    public function setContent(string $content): static
+    {
+        $this->content = $content;
+
+        return $this;
+    }
+
+    public function getCreated(): ?\DateTimeImmutable
+    {
+        return $this->created;
+    }
+
+    public function setCreated(\DateTimeImmutable $created): static
+    {
+        $this->created = $created;
+
+        return $this;
+    }
+
+    public function getAuthor(): ?User
+    {
+        return $this->author;
+    }
+
+    public function setAuthor(?User $author): static
+    {
+        $this->author = $author;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Vote>
+     */
+    public function getVotes(): Collection
+    {
+        return $this->votes;
+    }
+
+    public function addVote(Vote $vote): static
+    {
+        if (!$this->votes->contains($vote)) {
+            $this->votes->add($vote);
+            $vote->setPost($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVote(Vote $vote): static
+    {
+        if ($this->votes->removeElement($vote)) {
+            // set the owning side to null (unless already changed)
+            if ($vote->getPost() === $this) {
+                $vote->setPost(null);
+            }
+        }
+
+        return $this;
+    }
+}
+
+
+
+────────────────────────────────────────────
+📂 src/Entity
+└── 📄 User.php
+────────────────────────────────────────────
+<?php
+
+namespace App\Entity;
+
+use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
+
+#[ORM\Entity(repositoryClass: UserRepository::class)]
+#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_USERNAME', fields: ['username'])]
+#[UniqueEntity(fields: ['username'], message: 'There is already an account with this username')]
+class User implements UserInterface, PasswordAuthenticatedUserInterface
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\Column(length: 180)]
+    private ?string $username = null;
+
+    /**
+     * @var list<string> The user roles
+     */
+    #[ORM\Column]
+    private array $roles = [];
+
+    /**
+     * @var string The hashed password
+     */
+    #[ORM\Column]
+    private ?string $password = null;
+
+    /**
+     * @var Collection<int, Post>
+     */
+    #[ORM\OneToMany(targetEntity: Post::class, mappedBy: 'author', cascade: ['remove'], orphanRemoval: true)]
+    private Collection $posts;
+
+    /**
+     * @var Collection<int, Vote>
+     */
+    #[ORM\OneToMany(targetEntity: Vote::class, mappedBy: 'user')]
+    private Collection $votes;
+
+    public function __construct()
+    {
+        $this->posts = new ArrayCollection();
+        $this->votes = new ArrayCollection();
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getUsername(): ?string
+    {
+        return $this->username;
+    }
+
+    public function setUsername(string $username): static
+    {
+        $this->username = $username;
+
+        return $this;
+    }
+
+    /**
+     * A visual identifier that represents this user.
+     *
+     * @see UserInterface
+     */
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->username;
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function getRoles(): array
+    {
+        $roles = $this->roles;
+        // guarantee every user at least has ROLE_USER
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
+    }
+
+    /**
+     * @param list<string> $roles
+     */
+    public function setRoles(array $roles): static
+    {
+        $this->roles = $roles;
+
+        return $this;
+    }
+
+    /**
+     * @see PasswordAuthenticatedUserInterface
+     */
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(string $password): static
+    {
+        $this->password = $password;
+
+        return $this;
+    }
+
+    /**
+     * Ensure the session doesn't contain actual password hashes by CRC32C-hashing them, as supported since Symfony 7.3.
+     */
+    public function __serialize(): array
+    {
+        $data = (array) $this;
+        $data["\0".self::class."\0password"] = hash('crc32c', $this->password);
+
+        return $data;
+    }
+
+    #[\Deprecated]
+    public function eraseCredentials(): void
+    {
+        // @deprecated, to be removed when upgrading to Symfony 8
+    }
+
+    /**
+     * @return Collection<int, Post>
+     */
+    public function getPosts(): Collection
+    {
+        return $this->posts;
+    }
+
+    public function addPost(Post $post): static
+    {
+        if (!$this->posts->contains($post)) {
+            $this->posts->add($post);
+            $post->setAuthor($this);
+        }
+
+        return $this;
+    }
+
+    public function removePost(Post $post): static
+    {
+        if ($this->posts->removeElement($post)) {
+            // set the owning side to null (unless already changed)
+            if ($post->getAuthor() === $this) {
+                $post->setAuthor(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Vote>
+     */
+    public function getVotes(): Collection
+    {
+        return $this->votes;
+    }
+
+    public function addVote(Vote $vote): static
+    {
+        if (!$this->votes->contains($vote)) {
+            $this->votes->add($vote);
+            $vote->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVote(Vote $vote): static
+    {
+        if ($this->votes->removeElement($vote)) {
+            // set the owning side to null (unless already changed)
+            if ($vote->getUser() === $this) {
+                $vote->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+}
+
+
+
+────────────────────────────────────────────
+📂 src/Entity
+└── 📄 Vote.php
+────────────────────────────────────────────
+<?php
+declare(strict_types=1);
+
+namespace App\Entity;
+
+use App\Repository\VoteRepository;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+
+#[ORM\Entity(repositoryClass: VoteRepository::class)]
+#[ORM\Table(name: 'vote', uniqueConstraints: [
+    new ORM\UniqueConstraint(name: 'uniq_vote_user_post', columns: ['user_id', 'post_id'])
+])]
+#[UniqueEntity(fields: ['user', 'post'], message: 'Vous avez déjà voté pour ce post.')]
+final class Vote
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    // ✅ bool non-null + nom de colonne explicite
+    #[ORM\Column(name: 'is_like', type: 'boolean', nullable: false)]
+    private bool $isLike = true;
+
+    // ✅ horodatage simple
+    #[ORM\Column(type: 'datetime_immutable')]
+    private \DateTimeImmutable $created;
+
+    // ✅ join non-null + cascade DB
+    #[ORM\ManyToOne(inversedBy: 'votes')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    private ?User $user = null;
+
+    #[ORM\ManyToOne(inversedBy: 'votes')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    private ?Post $post = null;
+
+    public function __construct()
+    {
+        $this->created = new \DateTimeImmutable();
+    }
+
+    public function getId(): ?int { return $this->id; }
+
+    public function isLike(): bool { return $this->isLike; }
+    public function setIsLike(bool $isLike): self { $this->isLike = $isLike; return $this; }
+
+    public function getUser(): ?User { return $this->user; }
+    public function setUser(?User $user): self { $this->user = $user; return $this; }
+
+    public function getPost(): ?Post { return $this->post; }
+    public function setPost(?Post $post): self { $this->post = $post; return $this; }
+
+    public function getCreated(): \DateTimeImmutable { return $this->created; }
+}
+
+
+
+────────────────────────────────────────────
+📂 src/EventSubscriber
+└── 📄 AuthFlashSubscriber.php
+────────────────────────────────────────────
+<?php
+
+namespace App\EventSubscriber;
+
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
+use Symfony\Component\Security\Http\Event\LoginFailureEvent;
+use Symfony\Component\Security\Http\Event\LogoutEvent;
+
+final class AuthFlashSubscriber implements EventSubscriberInterface
+{
+    public function __construct(private UrlGeneratorInterface $urlGenerator)
+    {
+    }
+
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            LoginSuccessEvent::class => 'onLoginSuccess',
+            LogoutEvent::class       => 'onLogout',
+        ];
+		//LoginFailureEvent::class => 'onLoginFailure',
+        // Si tu veux cibler un firewall en particulier, tu peux aussi utiliser les *_MAIN events,
+        // mais la méthode ci-dessus est la plus simple et marche pour "main".
+    }
+
+    public function onLoginSuccess(LoginSuccessEvent $event): void
+    {
+        // message vert après authentification OK
+        $event->getRequest()->getSession()->getFlashBag()->add('success', 'Connexion réussie !');
+        // Laisse le flow standard continuer (redirection vers target_path / default_target_path)
+    }
+
+    /*public function onLoginFailure(LoginFailureEvent $event): void
+    {
+        // message rouge si identifiants invalides
+        $event->getRequest()->getSession()->getFlashBag()->add('error', 'Identifiants invalides.');
+        // Le handler par défaut te renverra déjà sur la page de login avec l’erreur.
+    }*/
+
+    public function onLogout(LogoutEvent $event): void
+    {
+        // message vert à la déconnexion
+        $event->getRequest()->getSession()->getFlashBag()->add('success', 'Déconnexion réussie !');
+
+        // Option A: laisser la config security.yaml décider de la redirection (logout.target)
+        // -> Dans ce cas, ne rien faire ici.
+
+        // Option B: forcer la redirection ici :
+        // $url = $this->urlGenerator->generate('e01_index');
+        // $event->setResponse(new RedirectResponse($url));
+    }
+}
+
+
+
+────────────────────────────────────────────
+📂 src/Form
+└── 📄 PostType.php
+────────────────────────────────────────────
+<?php
+
+namespace App\Form;
+
+use App\Entity\Post;
+use App\Entity\User;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+
+class PostType extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options): void
+    {
+
+        $builder
+            ->add('title', TextType::class, [
+                'label' => 'Titre',
+                'attr' => ['maxlength' => 60, 'placeholder' => 'Titre (max 60)'],
+            ])
+            ->add('content', TextareaType::class, [
+                'label' => 'Contenu',
+                'attr' => ['maxlength' => 150, 'rows' => 4, 'placeholder' => 'Contenu (max 150)'],
+            ]);
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'data_class' => Post::class,
+        ]);
+    }
+}
+
+
+
+────────────────────────────────────────────
+📂 src/Form
+└── 📄 RegistrationFormType.php
+────────────────────────────────────────────
+<?php
+
+namespace App\Form;
+
+use App\Entity\User;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\IsTrue;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
+
+class RegistrationFormType extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options): void
+    {
+        $builder
+            ->add('username')
+            ->add('agreeTerms', CheckboxType::class, [
+                'mapped' => false,
+                'constraints' => [
+                    new IsTrue([
+                        'message' => 'You should agree to our terms.',
+                    ]),
+                ],
+            ])
+            ->add('plainPassword', PasswordType::class, [
+                // instead of being set onto the object directly,
+                // this is read and encoded in the controller
+                'mapped' => false,
+                'attr' => ['autocomplete' => 'new-password'],
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'Please enter a password',
+                    ]),
+                    new Length([
+                        'min' => 6,
+                        'minMessage' => 'Your password should be at least {{ limit }} characters',
+                        // max length allowed by Symfony for security reasons
+                        'max' => 4096,
+                    ]),
+                ],
+            ])
+        ;
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'data_class' => User::class,
+        ]);
+    }
+}
+
+
+
+────────────────────────────────────────────
+📂 src
+└── 📄 Kernel.php
+────────────────────────────────────────────
+<?php
+
+namespace App;
+
+use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
+use Symfony\Component\HttpKernel\Kernel as BaseKernel;
+
+class Kernel extends BaseKernel
+{
+    use MicroKernelTrait;
+}
+
+
+
+────────────────────────────────────────────
+📂 src/Repository
+└── 📄 .gitignore
+────────────────────────────────────────────
+
+
+
+────────────────────────────────────────────
+📂 src/Repository
+└── 📄 PostRepository.php
+────────────────────────────────────────────
+<?php
+
+namespace App\Repository;
+
+use App\Entity\Post;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
+
+/**
+ * @extends ServiceEntityRepository<Post>
+ */
+class PostRepository extends ServiceEntityRepository
+{
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, Post::class);
+    }
+
+    //    /**
+    //     * @return Post[] Returns an array of Post objects
+    //     */
+    //    public function findByExampleField($value): array
+    //    {
+    //        return $this->createQueryBuilder('p')
+    //            ->andWhere('p.exampleField = :val')
+    //            ->setParameter('val', $value)
+    //            ->orderBy('p.id', 'ASC')
+    //            ->setMaxResults(10)
+    //            ->getQuery()
+    //            ->getResult()
+    //        ;
+    //    }
+
+    //    public function findOneBySomeField($value): ?Post
+    //    {
+    //        return $this->createQueryBuilder('p')
+    //            ->andWhere('p.exampleField = :val')
+    //            ->setParameter('val', $value)
+    //            ->getQuery()
+    //            ->getOneOrNullResult()
+    //        ;
+    //    }
+}
+
+
+
+────────────────────────────────────────────
+📂 src/Repository
+└── 📄 UserRepository.php
+────────────────────────────────────────────
+<?php
+
+namespace App\Repository;
+
+use App\Entity\User;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
+
+/**
+ * @extends ServiceEntityRepository<User>
+ */
+class UserRepository extends ServiceEntityRepository implements PasswordUpgraderInterface
+{
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, User::class);
+    }
+
+    /**
+     * Used to upgrade (rehash) the user's password automatically over time.
+     */
+    public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
+    {
+        if (!$user instanceof User) {
+            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', $user::class));
+        }
+
+        $user->setPassword($newHashedPassword);
+        $this->getEntityManager()->persist($user);
+        $this->getEntityManager()->flush();
+    }
+
+    //    /**
+    //     * @return User[] Returns an array of User objects
+    //     */
+    //    public function findByExampleField($value): array
+    //    {
+    //        return $this->createQueryBuilder('u')
+    //            ->andWhere('u.exampleField = :val')
+    //            ->setParameter('val', $value)
+    //            ->orderBy('u.id', 'ASC')
+    //            ->setMaxResults(10)
+    //            ->getQuery()
+    //            ->getResult()
+    //        ;
+    //    }
+
+    //    public function findOneBySomeField($value): ?User
+    //    {
+    //        return $this->createQueryBuilder('u')
+    //            ->andWhere('u.exampleField = :val')
+    //            ->setParameter('val', $value)
+    //            ->getQuery()
+    //            ->getOneOrNullResult()
+    //        ;
+    //    }
+}
+
+
+
+────────────────────────────────────────────
+📂 src/Repository
+└── 📄 VoteRepository.php
+────────────────────────────────────────────
+<?php
+
+namespace App\Repository;
+
+use App\Entity\Vote;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
+
+/**
+ * @extends ServiceEntityRepository<Vote>
+ */
+class VoteRepository extends ServiceEntityRepository
+{
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, Vote::class);
+    }
+
+//    /**
+//     * @return Vote[] Returns an array of Vote objects
+//     */
+//    public function findByExampleField($value): array
+//    {
+//        return $this->createQueryBuilder('v')
+//            ->andWhere('v.exampleField = :val')
+//            ->setParameter('val', $value)
+//            ->orderBy('v.id', 'ASC')
+//            ->setMaxResults(10)
+//            ->getQuery()
+//            ->getResult()
+//        ;
+//    }
+
+//    public function findOneBySomeField($value): ?Vote
+//    {
+//        return $this->createQueryBuilder('v')
+//            ->andWhere('v.exampleField = :val')
+//            ->setParameter('val', $value)
+//            ->getQuery()
+//            ->getOneOrNullResult()
+//        ;
+//    }
+}
+
+
+
+────────────────────────────────────────────
+📂 src/Security
+└── 📄 AccessDeniedHandler403.php
+────────────────────────────────────────────
+<?php 
+
+// src/Security/AccessDeniedHandler.php
+namespace App\Security;
+
+use Twig\Environment;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Http\Authorization\AccessDeniedHandlerInterface;
+
+class AccessDeniedHandler403 implements AccessDeniedHandlerInterface
+{
+    public function __construct(private Environment $twig) {}
+
+    public function handle(Request $request, AccessDeniedException $accessDeniedException): ?Response
+    {
+        // Ajout d'un flash via la session (et pas addFlash)
+        if ($request->hasSession())
+            $request->getSession()->getFlashBag()->add('info', 'Vous ne pouvez pas accéder à cette page.');
+        $content = $this->twig->render('access_denied.html.twig');
+        return new Response($content, 403);
+    }
+}
+
+
+?>
+
+
+────────────────────────────────────────────
+📂 src/Security
+└── 📄 AuthenticationEntryPoint401.php
+────────────────────────────────────────────
+<?php
+// src/Security/AuthenticationEntryPoint401.php
+namespace App\Security;
+
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
+
+class AuthenticationEntryPoint401 implements AuthenticationEntryPointInterface
+{
+    public function __construct(private UrlGeneratorInterface $urlGenerator) {}
+
+    public function start(Request $request, ?AuthenticationException $authException = null): Response
+    {		
+		$request->getSession()->getFlashBag()->add(
+			'info',
+			'Info: You have to login in order to access this page.'
+		);
+        return new RedirectResponse($this->urlGenerator->generate('e01_need_auth'));
+    }
+}
+
+?>
+
+
+────────────────────────────────────────────
+📂 config/packages
+└── 📄 security.yaml
+────────────────────────────────────────────
+security:
+    # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
+    providers:
+        # used to reload user from session & other features (e.g. switch_user)
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: username
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+        main:
+            entry_point: App\Security\AuthenticationEntryPoint401
+            lazy: true
+            provider: app_user_provider
+            form_login:
+                login_path: app_login      # ✅ chemin vers ton formulaire
+                check_path: app_login      # ✅ POST de connexion
+                enable_csrf: true
+                default_target_path: e01_index
+            logout:
+                path: app_logout
+                target: e01_index
+            access_denied_handler: App\Security\AccessDeniedHandler403  # ✅ déplacé ici
+
+
+                # where to redirect after logout
+                # target: app_any_route
+
+            # activate different ways to authenticate
+            # https://symfony.com/doc/current/security.html#the-firewall
+
+            # https://symfony.com/doc/current/security/impersonating_user.html
+            # switch_user: true
+
+    # Easy way to control access for large sections of your site
+    # Note: Only the *first* access control that matches will be used
+    access_control:
+        # - { path: ^/admin, roles: ROLE_ADMIN }
+        # - { path: ^/profile, roles: ROLE_USER }
+
+when@test:
+    security:
+        password_hashers:
+            # By default, password hashers are resource intensive and take time. This is
+            # important to generate secure password hashes. In tests however, secure hashes
+            # are not important, waste resources and increase test times. The following
+            # reduces the work factor to the lowest possible values.
+            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+                algorithm: auto
+                cost: 4 # Lowest possible value for bcrypt
+                time_cost: 3 # Lowest possible value for argon
+                memory_cost: 10 # Lowest possible value for argon
+
+
+
+────────────────────────────────────────────
+📂 config
+└── 📄 routes.yaml
+────────────────────────────────────────────
+controllers:
+    resource:
+        path: ../src/Controller/
+        namespace: App\Controller
+    type: attribute
+
+E02Controller:
+    resource: ../src/E02Bundle/Controller/
+    type: attribute
+E03Bundle:
+    resource: '../src/E03Bundle/Controller'
+    type: attribute
+
+E04Bundle:
+    resource: '../src/E04Bundle/Controller'
+    type: attribute
+
+

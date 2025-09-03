@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
     <head>
         <meta charset="UTF-8">
         <title>{% block title %}Welcome!{% endblock %}</title>
@@ -10,16 +10,6 @@
         {% block javascripts %}{% endblock %}
     </head>
     <body>
-
-        {# Affichage de tous les messages flash #}
-        {#{% for label, messages in app.flashes %}
-            {% for message in messages %}
-                <div class="alert alert-{{ label }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endfor %}#}
-        {# base.html.twig #}
 {% for label, messages in app.flashes %}
     {% set cssLabel = label == 'error' ? 'danger' : label %}
     {% for message in messages %}
