@@ -11,3 +11,22 @@
 .alert-danger { background: #f8d7da; color: #721c24; border-left: 7px solid #e53e3e; }
 .alert-info { background: #ffee00; color: #000000; border-left: 7px solid #d8db38; }
 .alert-note { background: blue; color: #000000; border-left: 7px solid #3848db; }
+.vote {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: 14px;
+}
+.vote a,
+.vote span {
+  text-decoration: none;
+  padding: .2rem .45rem;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  line-height: 1;
+  display: inline-block;
+}
+.vote a:hover { background: #f6f6f6; }
+.vote .active { background: #e6f4ea; border-color: #9fd3ae; font-weight: 600; }
+.vote .disabled { opacity: .5; cursor: not-allowed; }
+.vote .count { font-variant-numeric: tabular-nums; padding: 0 .2rem; }

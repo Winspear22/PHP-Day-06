@@ -537,7 +537,7 @@ namespace App\E04Bundle\Controller;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 final class E04Controller extends AbstractController
@@ -547,7 +547,7 @@ final class E04Controller extends AbstractController
     {
         $message = 'Bienvenue, visiteur ! (Ceci est un message du controller).';
         return $this->render('e01/index.html.twig', [
-            'message' =>$message,
+            'message' => $message,
             'exercise'          => 'E04',
             'e04_seconds_since' => (int) $request->attributes->get('e04_seconds_since_last', 0),
             'e04_anon_name'     => $request->attributes->get('e04_anon_name'),
@@ -662,6 +662,118 @@ final class E04EventSubscriber implements EventSubscriberInterface
 }
 
 ?>
+
+
+────────────────────────────────────────────
+📂 src/E05Bundle/Controller
+└── 📄 E05Controller.php
+────────────────────────────────────────────
+<?php
+
+namespace App\E05Bundle\Controller;
+
+use Exception;
+use App\Entity\Post;
+use App\Entity\Vote;
+use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+
+final class E05Controller extends AbstractController
+{
+    #[Route('/e05', name: 'e05_index')]
+    public function index(): Response
+    {
+        $message = "popo";
+        return $this->render('e01/index.html.twig', [
+            'message' => $message
+        ]);
+    }
+
+    #[Route('/e05/post/{id}/vote/{type}', name: 'e05_vote', requirements: ['type' => 'like|dislike'])]
+    #[IsGranted('ROLE_USER')]
+    public function vote(int $id, string $type, ManagerRegistry $doctrine): Response
+    {
+		try
+		{
+			$post = $doctrine->getRepository(Post::class)->find($id);
+			if (!$post)
+			{
+				$this->addFlash('error', 'Erreur, le post que vous cherchez n\'existe pas ou plus.');
+				return $this->redirectToRoute('e01_welcome');
+
+			}
+			$user = $this->getUser();
+			$userId = $user->getId();
+			$postAuthorId = $post->getAuthor()->getId();
+			if ($postAuthorId === $userId)
+			{
+				$this->addFlash('error', "Tu ne peux pas voter pour ton propre post.");
+				return $this->redirectToRoute('e01_welcome');
+			}
+			$em = $doctrine->getManager();
+			$voteRepo = $doctrine->getRepository(Vote::class);
+			$existing = $voteRepo->findOneBy(['user' => $user, 'post' => $post]);
+			$isLikeRequested = ($type === 'like'); // Ca renvoit true ou false, c'est un if deguise en fait
+			if ($existing === null)
+			{
+				$newVote = new Vote();
+				$newVote->setUser($user);
+				$newVote->setPost($post);
+				$newVote->setIsLike($isLikeRequested);
+				$em->persist($newVote);
+				$em->flush();
+				return $this->redirectToRoute('e03_read_post_details', ['id' => $post->getId()]);
+			}
+			else if ($existing->isLike() === $isLikeRequested)
+			{
+				$em->remove($existing);
+				$em->flush();
+				return $this->redirectToRoute('e03_read_post_details', ['id' => $post->getId()]);
+			}
+			else
+			{
+				$existing->setIsLike($isLikeRequested);
+				$em->flush();
+				return $this->redirectToRoute('e03_read_post_details', ['id' => $post->getId()]);
+			}
+		}
+		catch (UniqueConstraintViolationException $e)
+		{
+    		// déjà un vote en DB → on fait comme le Cas B (annulation) ou on renvoie juste vers détails
+			$message = "Erreur : " . $e->getMessage();
+			$this->addFlash('error', $message);
+			return $this->redirectToRoute('e01_welcome');
+		}
+		catch (Exception $e)
+		{
+			$message = "Erreur : " . $e->getMessage();
+			$this->addFlash('error', $message);
+			return $this->redirectToRoute('e01_index');
+		}
+		return $this->redirectToRoute('e01_welcome');
+    }
+}
+
+
+
+────────────────────────────────────────────
+📂 src/E05Bundle
+└── 📄 E05Bundle.php
+────────────────────────────────────────────
+<?php
+
+namespace App\E05Bundle;
+
+use Symfony\Component\HttpKernel\Bundle\Bundle;
+
+class E05Bundle extends Bundle
+{
+}
+
 
 
 ────────────────────────────────────────────
@@ -1592,12 +1704,17 @@ controllers:
 E02Controller:
     resource: ../src/E02Bundle/Controller/
     type: attribute
+
 E03Bundle:
     resource: '../src/E03Bundle/Controller'
     type: attribute
 
 E04Bundle:
     resource: '../src/E04Bundle/Controller'
+    type: attribute
+
+E05Bundle:
+    resource: '../src/E05Bundle/Controller'
     type: attribute
 
 

@@ -8,6 +8,45 @@
     <p><strong>Date :</strong> {{ post.created|date('d/m/Y H:i') }}</p>
     <p>{{ post.content }}</p>
 
+    <hr>
+
+    <div class="vote">
+        <strong>Votes :</strong>
+        <span class="count">👍 {{ post.countLikes() }}</span>
+        <span class="count">👎 {{ post.countDislikes() }}</span>
+    </div>
+
+    <div class="vote" style="margin-top:.5rem;">
+        {# Vote actuel de l'utilisateur (s'il existe) #}
+        {% set myVote = null %}
+        {% if app.user %}
+            {% for v in post.votes if v.user and v.user.id == app.user.id %}
+                {% set myVote = v %}
+            {% endfor %}
+        {% endif %}
+        {% set liked = myVote and myVote.isLike %}
+        {% set disliked = myVote and (not myVote.isLike) %}
+        {% set isAuthor = app.user and post.author and post.author.id == app.user.id %}
+
+        {# Like ▲ #}
+        {% if app.user and not isAuthor %}
+            <a class="{{ liked ? 'active' : '' }}"
+               href="{{ path('e05_vote', { id: post.id, type: 'like' }) }}"
+               title="Like">▲</a>
+        {% else %}
+            <span class="disabled" title="{{ isAuthor ? 'Impossible de voter son propre post' : 'Connecte-toi pour voter' }}">▲</span>
+        {% endif %}
+
+        {# Dislike ▼ #}
+        {% if app.user and not isAuthor %}
+            <a class="{{ disliked ? 'active' : '' }}"
+               href="{{ path('e05_vote', { id: post.id, type: 'dislike' }) }}"
+               title="Dislike">▼</a>
+        {% else %}
+            <span class="disabled" title="{{ isAuthor ? 'Impossible de voter son propre post' : 'Connecte-toi pour voter' }}">▼</span>
+        {% endif %}
+    </div>
+
     <br>
     <a href="{{ path('e01_welcome') }}">Retour aux posts</a>
 {% endblock %}
