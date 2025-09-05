@@ -56,19 +56,19 @@ final class E05Controller extends AbstractController
 				$newVote->setIsLike($isLikeRequested);
 				$em->persist($newVote);
 				$em->flush();
-				return $this->redirectToRoute('e03_read_post_details', ['id' => $post->getId()]);
+				//return $this->redirectToRoute('e03_read_post_details', ['id' => $post->getId()]);
 			}
 			else if ($existing->isLike() === $isLikeRequested)
 			{
 				$em->remove($existing);
 				$em->flush();
-				return $this->redirectToRoute('e03_read_post_details', ['id' => $post->getId()]);
+				//return $this->redirectToRoute('e03_read_post_details', ['id' => $post->getId()]);
 			}
 			else
 			{
 				$existing->setIsLike($isLikeRequested);
 				$em->flush();
-				return $this->redirectToRoute('e03_read_post_details', ['id' => $post->getId()]);
+				//return $this->redirectToRoute('e03_read_post_details', ['id' => $post->getId()]);
 			}
 		}
 		catch (UniqueConstraintViolationException $e)

@@ -57,8 +57,10 @@
                                 {# Vote actuel de l'utilisateur (s'il existe) #}
                                 {% set myVote = null %}
                                 {% if app.user %}
-                                    {% for v in post.votes if v.user and v.user.id == app.user.id %}
-                                        {% set myVote = v %}
+                                    {% for v in post.votes %}
+                                        {% if v.user and v.user.id == app.user.id %}
+                                            {% set myVote = v %}
+                                        {% endif %}
                                     {% endfor %}
                                 {% endif %}
                                 {% set liked = myVote and myVote.isLike %}
