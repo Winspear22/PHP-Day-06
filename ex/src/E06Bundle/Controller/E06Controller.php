@@ -60,7 +60,7 @@ class E06Controller extends AbstractController
                     $this->addFlash('success', 'Post modifié avec succès.');
                     return $this->redirectToRoute('e03_read_post_details', ['id' => $id]);
                 }
-                return $this->render('e06/edit.html.twig', [
+                return $this->render('e06/edit_post.html.twig', [
                     'post' => $post,
                     'form' => $form->createView(),
                 ]);

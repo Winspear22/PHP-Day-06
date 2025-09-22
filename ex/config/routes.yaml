@@ -22,4 +22,4 @@ E05Bundle:
 
 E06Bundle:
     resource: '../src/E06Bundle/Controller'
-    type: annotation
+    type: attribute
