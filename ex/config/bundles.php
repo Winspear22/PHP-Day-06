@@ -1,6 +1,7 @@
 <?php
 
 return [
+    App\E06Bundle\E06Bundle::class => ['all' => true],
     App\E05Bundle\E05Bundle::class => ['all' => true],
     App\E04Bundle\E04Bundle::class => ['all' => true],
     App\E03Bundle\E03Bundle::class => ['all' => true],

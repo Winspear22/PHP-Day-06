@@ -19,3 +19,7 @@ E04Bundle:
 E05Bundle:
     resource: '../src/E05Bundle/Controller'
     type: attribute
+
+E06Bundle:
+    resource: '../src/E06Bundle/Controller'
+    type: annotation

@@ -15,7 +15,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 final class E05Controller extends AbstractController
 {
-    #[Route('/e05', name: 'e05_index')]
+    #[Route(path: '/e05', name: 'e05_index')]
     public function index(): Response
     {
         $message = "popo";
@@ -87,7 +87,7 @@ final class E05Controller extends AbstractController
 		}
 		$from = $request->query->get('from', 'welcome');
 		if ($from === 'details')
-        	return $this->redirectToRoute('e03_read_post_details', ['id' => $id]);
+			return $this->redirectToRoute('e03_read_post_details', ['id' => $id]);
 		return $this->redirectToRoute('e01_welcome');
     }
 }

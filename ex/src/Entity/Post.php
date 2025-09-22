@@ -49,6 +49,12 @@ class Post
     #[ORM\OneToMany(targetEntity: Vote::class, mappedBy: 'post', cascade: ['remove'], orphanRemoval: true)]
     private Collection $votes;
 
+    #[ORM\ManyToOne(inversedBy: 'editedPosts')]
+    private ?User $lastEditedBy = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $lastEditedAt = null;
+
     public function countLikes(): int
     {
         $c = 0; foreach ($this->votes as $v) { if ($v->isLike()) { ++$c; } } return $c;
@@ -142,6 +148,30 @@ class Post
                 $vote->setPost(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getLastEditedBy(): ?User
+    {
+        return $this->lastEditedBy;
+    }
+
+    public function setLastEditedBy(?User $lastEditedBy): static
+    {
+        $this->lastEditedBy = $lastEditedBy;
+
+        return $this;
+    }
+
+    public function getLastEditedAt(): ?\DateTimeImmutable
+    {
+        return $this->lastEditedAt;
+    }
+
+    public function setLastEditedAt(?\DateTimeImmutable $lastEditedAt): static
+    {
+        $this->lastEditedAt = $lastEditedAt;
 
         return $this;
     }
