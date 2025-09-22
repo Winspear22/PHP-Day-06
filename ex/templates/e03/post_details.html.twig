@@ -4,7 +4,7 @@
 
 {% block body %}
     <h1>{{ post.title }}</h1>
-    <p><strong>Auteur :</strong> {{ post.author.username }}</p>
+    <p><strong>Auteur :</strong> {{ post.author.username }} (Réputation : {{ post.author.reputation }})</p>
     <p><strong>Date :</strong> {{ post.created|date('d/m/Y H:i') }}</p>
     <p>{{ post.content }}</p>
 
@@ -34,7 +34,7 @@
         {# Like ▲ #}
         {% if app.user and not isAuthor %}
             <a class="{{ liked ? 'active' : '' }}"
-               href="{{ path('e05_vote', { id: post.id, type: 'like' }) }}"
+               href="{{ path('e05_vote', { id: post.id, type: 'like', from: 'details' }) }}"
                title="Like">▲</a>
         {% else %}
             <span class="disabled" title="{{ isAuthor ? 'Impossible de voter son propre post' : 'Connecte-toi pour voter' }}">▲</span>
@@ -43,7 +43,7 @@
         {# Dislike ▼ #}
         {% if app.user and not isAuthor %}
             <a class="{{ disliked ? 'active' : '' }}"
-               href="{{ path('e05_vote', { id: post.id, type: 'dislike' }) }}"
+               href="{{ path('e05_vote', { id: post.id, type: 'dislike', from: 'details' }) }}"
                title="Dislike">▼</a>
         {% else %}
             <span class="disabled" title="{{ isAuthor ? 'Impossible de voter son propre post' : 'Connecte-toi pour voter' }}">▼</span>

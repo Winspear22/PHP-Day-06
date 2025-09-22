@@ -6,6 +6,7 @@ use Exception;
 use App\Entity\Post;
 use App\Entity\Vote;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -25,7 +26,7 @@ final class E05Controller extends AbstractController
 
     #[Route('/e05/post/{id}/vote/{type}', name: 'e05_vote', requirements: ['type' => 'like|dislike'])]
     #[IsGranted('ROLE_USER')]
-    public function vote(int $id, string $type, ManagerRegistry $doctrine): Response
+    public function vote(int $id, string $type, ManagerRegistry $doctrine, Request $request): Response
     {
 		try
 		{
@@ -84,6 +85,9 @@ final class E05Controller extends AbstractController
 			$this->addFlash('error', $message);
 			return $this->redirectToRoute('e01_index');
 		}
+		$from = $request->query->get('from', 'welcome');
+		if ($from === 'details')
+        	return $this->redirectToRoute('e03_read_post_details', ['id' => $id]);
 		return $this->redirectToRoute('e01_welcome');
     }
 }

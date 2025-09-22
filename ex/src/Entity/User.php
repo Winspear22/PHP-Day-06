@@ -193,4 +193,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    public function getReputation(): int
+    {
+        $reputation = 0;
+        foreach ($this->posts as $post)
+            $reputation += $post->countLikes() - $post->countDislikes();
+        return $reputation;
+    }
 }
