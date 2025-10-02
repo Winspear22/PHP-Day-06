@@ -17,7 +17,7 @@
     </div>
 
     <div class="vote" style="margin-top:.5rem;">
-        {# Vote actuel de l'utilisateur (s'il existe) #}
+        {# --- Calcul du droit et vote utilisateur --- #}
         {% set myVote = null %}
         {% if app.user %}
             {% for v in post.votes %}
@@ -26,14 +26,14 @@
                 {% endif %}
             {% endfor %}
         {% endif %}
-
         {% set liked = myVote and myVote.isLike %}
         {% set disliked = myVote and (not myVote.isLike) %}
         {% set isAuthor = app.user and post.author and post.author.id == app.user.id %}
         {% set rep = app.user ? app.user.getReputation() : 0 %}
         {% set isAdmin = app.user and 'ROLE_ADMIN' in app.user.roles %}
-        {% set canLike = app.user and rep >= 3 and not isAuthor %}
-        {% set canDislike = app.user and rep >= 6 and not isAuthor %}
+        {# Ici on donne le droit à l'admin ou si palier atteint, sauf pour son propre post #}
+        {% set canLike = app.user and (rep >= 3 or isAdmin) and not isAuthor %}
+        {% set canDislike = app.user and (rep >= 6 or isAdmin) and not isAuthor %}
         {% set canEdit = app.user and (isAuthor or isAdmin or rep >= 9) %}
 
         {# Like ▲ #}
@@ -42,7 +42,8 @@
             href="{{ path('e05_vote', { id: post.id, type: 'like', from: 'details' }) }}"
             title="Like">▲</a>
         {% else %}
-            <span class="disabled" title="{% if not app.user %}Connecte-toi pour voter{% elseif isAuthor %}Impossible de voter son propre post{% else %}Il faut 3+ de réputation{% endif %}">▲</span>
+            <span class="disabled"
+            title="{% if not app.user %}Connecte-toi pour voter{% elseif isAuthor %}Impossible de voter son propre post{% else %}Il faut 3+ de réputation ou être admin{% endif %}">▲</span>
         {% endif %}
 
         {# Dislike ▼ #}
@@ -51,7 +52,8 @@
             href="{{ path('e05_vote', { id: post.id, type: 'dislike', from: 'details' }) }}"
             title="Dislike">▼</a>
         {% else %}
-            <span class="disabled" title="{% if not app.user %}Connecte-toi pour voter{% elseif isAuthor %}Impossible de voter son propre post{% else %}Il faut 6+ de réputation{% endif %}">▼</span>
+            <span class="disabled"
+                title="{% if not app.user %}Connecte-toi pour voter{% elseif isAuthor %}Impossible de voter son propre post{% else %}Il faut 6+ de réputation ou être admin{% endif %}">▼</span>
         {% endif %}
 
         {# Edit #}

@@ -128,6 +128,23 @@
                 </thead>
                 <tbody>
                     {% for post in posts %}
+                        {% set isAuthor = app.user and post.author and post.author.id == app.user.id %}
+                        {% set rep = app.user ? app.user.getReputation() : 0 %}
+                        {% set canLike = app.user and rep >= 3 and not isAuthor %}
+                        {% set canDislike = app.user and rep >= 6 and not isAuthor %}
+                        {% set isAdmin = app.user and 'ROLE_ADMIN' in app.user.roles %}
+                        {% set canEdit = app.user and (isAuthor or isAdmin or rep >= 9) %}
+                        {% set myVote = null %}
+                        {% if app.user %}
+                            {% for v in post.votes %}
+                                {% if v.user and v.user.id == app.user.id %}
+                                    {% set myVote = v %}
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                        {% set liked = myVote and myVote.isLike %}
+                        {% set disliked = myVote and (not myVote.isLike) %}
+
                         <tr>
                             <td>
                                 <a href="{{ path('e03_read_post_details', {id: post.id}) }}">
@@ -143,39 +160,29 @@
                                 <span class="count">👍 {{ post.countLikes() }}</span>
                                 <span class="count">👎 {{ post.countDislikes() }}</span>
                             </td>
-
                             {# --- Flèches like/dislike --- #}
                             <td class="vote">
-                                {# Vote actuel de l'utilisateur (s'il existe) #}
-                                {% set myVote = null %}
-                                {% if app.user %}
-                                    {% for v in post.votes %}
-                                        {% if v.user and v.user.id == app.user.id %}
-                                            {% set myVote = v %}
-                                        {% endif %}
-                                    {% endfor %}
-                                {% endif %}
-                                {% set liked = myVote and myVote.isLike %}
-                                {% set disliked = myVote and (not myVote.isLike) %}
-
-                                {% set isAuthor = app.user and post.author and post.author.id == app.user.id %}
-
                                 {# Like ▲ #}
-                                {% if app.user and not isAuthor %}
+                                {% if canLike %}
                                     <a class="{{ liked ? 'active' : '' }}"
                                        href="{{ path('e05_vote', { id: post.id, type: 'like', from: 'welcome'}) }}"
                                        title="Like">▲</a>
                                 {% else %}
-                                    <span class="disabled" title="{{ isAuthor ? 'Impossible de voter son propre post' : 'Connecte-toi pour voter' }}">▲</span>
+                                    <span class="disabled" title="{% if not app.user %}Connecte-toi pour voter{% elseif isAuthor %}Impossible de voter son propre post{% else %}Il faut 3+ de réputation{% endif %}">▲</span>
                                 {% endif %}
 
                                 {# Dislike ▼ #}
-                                {% if app.user and not isAuthor %}
+                                {% if canDislike %}
                                     <a class="{{ disliked ? 'active' : '' }}"
                                        href="{{ path('e05_vote', { id: post.id, type: 'dislike', from: 'welcome' }) }}"
                                        title="Dislike">▼</a>
                                 {% else %}
-                                    <span class="disabled" title="{{ isAuthor ? 'Impossible de voter son propre post' : 'Connecte-toi pour voter' }}">▼</span>
+                                    <span class="disabled" title="{% if not app.user %}Connecte-toi pour voter{% elseif isAuthor %}Impossible de voter son propre post{% else %}Il faut 6+ de réputation{% endif %}">▼</span>
+                                {% endif %}
+
+                                {# Edit ✏️ #}
+                                {% if canEdit %}
+                                    <a href="{{ path('e06_edit', { id: post.id }) }}">Modifier ce post</a>
                                 {% endif %}
                             </td>
                         </tr>
@@ -329,26 +336,32 @@
         {% set liked = myVote and myVote.isLike %}
         {% set disliked = myVote and (not myVote.isLike) %}
         {% set isAuthor = app.user and post.author and post.author.id == app.user.id %}
+        {% set rep = app.user ? app.user.getReputation() : 0 %}
+        {% set isAdmin = app.user and 'ROLE_ADMIN' in app.user.roles %}
+        {% set canLike = app.user and rep >= 3 and not isAuthor %}
+        {% set canDislike = app.user and rep >= 6 and not isAuthor %}
+        {% set canEdit = app.user and (isAuthor or isAdmin or rep >= 9) %}
 
         {# Like ▲ #}
-        {% if app.user and not isAuthor %}
+        {% if canLike %}
             <a class="{{ liked ? 'active' : '' }}"
             href="{{ path('e05_vote', { id: post.id, type: 'like', from: 'details' }) }}"
             title="Like">▲</a>
         {% else %}
-            <span class="disabled" title="{{ isAuthor ? 'Impossible de voter son propre post' : 'Connecte-toi pour voter' }}">▲</span>
+            <span class="disabled" title="{% if not app.user %}Connecte-toi pour voter{% elseif isAuthor %}Impossible de voter son propre post{% else %}Il faut 3+ de réputation{% endif %}">▲</span>
         {% endif %}
 
         {# Dislike ▼ #}
-        {% if app.user and not isAuthor %}
+        {% if canDislike %}
             <a class="{{ disliked ? 'active' : '' }}"
             href="{{ path('e05_vote', { id: post.id, type: 'dislike', from: 'details' }) }}"
             title="Dislike">▼</a>
         {% else %}
-            <span class="disabled" title="{{ isAuthor ? 'Impossible de voter son propre post' : 'Connecte-toi pour voter' }}">▼</span>
+            <span class="disabled" title="{% if not app.user %}Connecte-toi pour voter{% elseif isAuthor %}Impossible de voter son propre post{% else %}Il faut 6+ de réputation{% endif %}">▼</span>
         {% endif %}
+
         {# Edit #}
-        {% if app.user and app.user.id == post.author.id %}
+        {% if canEdit %}
             <a href="{{ path('e06_edit', { id: post.id }) }}">Modifier ce post</a>
         {% endif %}
     </div>

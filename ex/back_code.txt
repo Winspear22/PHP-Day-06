@@ -234,53 +234,102 @@ class SecurityController extends AbstractController
 namespace App\DataFixtures;
 
 use App\Entity\User;
+use App\Entity\Post;
+use App\Entity\Vote;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AppFixtures extends Fixture
 {
-    private UserPasswordHasherInterface $hasher;
-
-    public function __construct(UserPasswordHasherInterface $hasher)
-    {
-        $this->hasher = $hasher;
-    }
+    public function __construct(private UserPasswordHasherInterface $hasher) {}
 
     public function load(ObjectManager $manager): void
     {
-        // Utilisateur normal
-        $user = new User();
-        $user->setUsername('user42');
-        $user->setRoles(['ROLE_USER']);
-        $user->setPassword($this->hasher->hashPassword($user, 'user42'));
-        $manager->persist($user);
+        // Comptes de base
+        $u0 = $this->makeUser($manager, 'u0',  ['ROLE_USER'], 'u0');
+        $u3 = $this->makeUser($manager, 'u3',  ['ROLE_USER'], 'u3');
+        $u6 = $this->makeUser($manager, 'u6',  ['ROLE_USER'], 'u6');
+        $u9 = $this->makeUser($manager, 'u9',  ['ROLE_USER'], 'u9');
+        $admin = $this->makeUser($manager, 'admin42', ['ROLE_ADMIN'], 'admin42');
 
-        for ($i = 1; $i <= 10; $i++)
-        {
-            $u = new User();
-            $u->setUsername("user$i");
-            $u->setRoles(['ROLE_USER']);
-            $u->setPassword($this->hasher->hashPassword($u, 'user42'));
-            $manager->persist($u);
+        // Votants génériques
+        $voters = [];
+        for ($i = 1; $i <= 12; $i++) {
+            $voters[] = $this->makeUser($manager, "voter$i", ['ROLE_USER'], 'voter');
         }
 
-        // Administrateur
-        $admin = new User();
-        $admin->setUsername('admin42');
-        $admin->setRoles(['ROLE_ADMIN']); // clé ici !
-        $admin->setPassword($this->hasher->hashPassword($admin, 'admin42'));
-        $manager->persist($admin);
+        // Posts
+        $p0 = $this->makePost($manager, $u0, 'Post u0', 'Contenu u0');
+        $p3 = $this->makePost($manager, $u3, 'Post u3', 'Contenu u3');
+        $p6 = $this->makePost($manager, $u6, 'Post u6', 'Contenu u6');
+        $p9 = $this->makePost($manager, $u9, 'Post u9', 'Contenu u9');
 
-        $admin = new User();
-        $admin->setUsername('admin21');
-        $admin->setRoles(['ROLE_ADMIN']); // clé ici !
-        $admin->setPassword($this->hasher->hashPassword($admin, 'admin21'));
-        $manager->persist($admin);
+        $manager->flush(); // pour générer les IDs avant de voter
 
+        // Votes (pour générer précisément les réputations qu'on veut)
+        // u3 reçoit 3 likes
+        $this->like($manager, $voters[0], $p3);
+        $this->like($manager, $voters[1], $p3);
+        $this->like($manager, $voters[2], $p3);
 
+        // u6 reçoit 6 likes
+        for ($i = 3; $i < 9; $i++) {
+            $this->like($manager, $voters[$i], $p6);
+        }
+
+        // u9 reçoit exactement 9 de réputation nette : 10 likes – 1 dislike
+        for ($i = 0; $i < 10; $i++) {
+            $this->like($manager, $voters[$i], $p9);
+        }
+        $this->dislike($manager, $voters[10], $p9);
 
         $manager->flush();
+    }
+
+    private function makeUser(ObjectManager $em, string $username, array $roles, string $plain): User
+    {
+        $u = new User();
+        $u->setUsername($username);
+        $u->setRoles($roles);
+        $u->setPassword($this->hasher->hashPassword($u, $plain));
+        $em->persist($u);
+        return $u;
+    }
+
+    private function makePost(ObjectManager $em, User $author, string $title, string $content): Post
+    {
+        $p = new Post();
+        $p->setAuthor($author);
+        $p->setTitle($title);
+        $p->setContent($content);
+        $p->setCreated(new \DateTimeImmutable());
+        $em->persist($p);
+        return $p;
+    }
+
+    private function like(ObjectManager $em, User $by, Post $post): void
+    {
+        if ($post->getAuthor()->getId() === $by->getId()) {
+            return; // pas de vote sur soi-même
+        }
+        $v = new Vote();
+        $v->setUser($by);
+        $v->setPost($post);
+        $v->setIsLike(true);
+        $em->persist($v);
+    }
+
+    private function dislike(ObjectManager $em, User $by, Post $post): void
+    {
+        if ($post->getAuthor()->getId() === $by->getId()) {
+            return;
+        }
+        $v = new Vote();
+        $v->setUser($by);
+        $v->setPost($post);
+        $v->setIsLike(false);
+        $em->persist($v);
     }
 }
 
@@ -698,67 +747,59 @@ final class E05Controller extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function vote(int $id, string $type, ManagerRegistry $doctrine, Request $request): Response
     {
-		try
-		{
-			$post = $doctrine->getRepository(Post::class)->find($id);
-			if (!$post)
-			{
-				$this->addFlash('error', 'Erreur, le post que vous cherchez n\'existe pas ou plus.');
-				return $this->redirectToRoute('e01_welcome');
+        try {
+            $post = $doctrine->getRepository(Post::class)->find($id);
+            if (!$post) {
+                $this->addFlash('error', 'Erreur, le post que vous cherchez n\'existe pas ou plus.');
+                return $this->redirectToRoute('e01_welcome');
+            }
+            $user = $this->getUser();
+            $userId = $user->getId();
+            $postAuthorId = $post->getAuthor()->getId();
+            $rep = $user->getReputation(); // Si jamais bug, fais appel à la méthode SQL (expliqué plus haut)
 
-			}
-			$user = $this->getUser();
-			$userId = $user->getId();
-			$postAuthorId = $post->getAuthor()->getId();
-			if ($postAuthorId === $userId)
-			{
-				$this->addFlash('error', "Tu ne peux pas voter pour ton propre post.");
-				return $this->redirectToRoute('e01_welcome');
-			}
-			$em = $doctrine->getManager();
-			$voteRepo = $doctrine->getRepository(Vote::class);
-			$existing = $voteRepo->findOneBy(['user' => $user, 'post' => $post]);
-			$isLikeRequested = ($type === 'like'); // Ca renvoit true ou false, c'est un if deguise en fait
-			if ($existing === null)
-			{
-				$newVote = new Vote();
-				$newVote->setUser($user);
-				$newVote->setPost($post);
-				$newVote->setIsLike($isLikeRequested);
-				$em->persist($newVote);
-				$em->flush();
-				//return $this->redirectToRoute('e03_read_post_details', ['id' => $post->getId()]);
-			}
-			else if ($existing->isLike() === $isLikeRequested)
-			{
-				$em->remove($existing);
-				$em->flush();
-				//return $this->redirectToRoute('e03_read_post_details', ['id' => $post->getId()]);
-			}
-			else
-			{
-				$existing->setIsLike($isLikeRequested);
-				$em->flush();
-				//return $this->redirectToRoute('e03_read_post_details', ['id' => $post->getId()]);
-			}
-		}
-		catch (UniqueConstraintViolationException $e)
-		{
-    		// déjà un vote en DB → on fait comme le Cas B (annulation) ou on renvoie juste vers détails
-			$message = "Erreur : " . $e->getMessage();
-			$this->addFlash('error', $message);
-			return $this->redirectToRoute('e01_welcome');
-		}
-		catch (Exception $e)
-		{
-			$message = "Erreur : " . $e->getMessage();
-			$this->addFlash('error', $message);
-			return $this->redirectToRoute('e01_index');
-		}
-		$from = $request->query->get('from', 'welcome');
-		if ($from === 'details')
-			return $this->redirectToRoute('e03_read_post_details', ['id' => $id]);
-		return $this->redirectToRoute('e01_welcome');
+            if ($postAuthorId === $userId) {
+                $this->addFlash('error', "Tu ne peux pas voter pour ton propre post.");
+                return $this->redirectToRoute('e01_welcome');
+            }
+            if ($type === 'like' && $rep < 3) {
+                $this->addFlash('error', "Il te faut au moins 3 de réputation pour liker.");
+                return $this->redirectToRoute('e01_welcome');
+            }
+            if ($type === 'dislike' && $rep < 6) {
+                $this->addFlash('error', "Il te faut au moins 6 de réputation pour disliker.");
+                return $this->redirectToRoute('e01_welcome');
+            }
+
+            $em = $doctrine->getManager();
+            $voteRepo = $doctrine->getRepository(Vote::class);
+            $existing = $voteRepo->findOneBy(['user' => $user, 'post' => $post]);
+            $isLikeRequested = ($type === 'like');
+            if ($existing === null) {
+                $newVote = new Vote();
+                $newVote->setUser($user);
+                $newVote->setPost($post);
+                $newVote->setIsLike($isLikeRequested);
+                $em->persist($newVote);
+                $em->flush();
+            } else if ($existing->isLike() === $isLikeRequested) {
+                $em->remove($existing);
+                $em->flush();
+            } else {
+                $existing->setIsLike($isLikeRequested);
+                $em->flush();
+            }
+        } catch (UniqueConstraintViolationException $e) {
+            $this->addFlash('error', 'Erreur : '.$e->getMessage());
+            return $this->redirectToRoute('e01_welcome');
+        } catch (Exception $e) {
+            $this->addFlash('error', 'Erreur : '.$e->getMessage());
+            return $this->redirectToRoute('e01_index');
+        }
+        $from = $request->query->get('from', 'welcome');
+        if ($from === 'details')
+            return $this->redirectToRoute('e03_read_post_details', ['id' => $id]);
+        return $this->redirectToRoute('e01_welcome');
     }
 }
 
@@ -810,55 +851,51 @@ class E06Controller extends AbstractController
             'message' => $message
         ]);
     }
-
+    
     #[Route('/e06/post/{id}/edit', name:'e06_edit')]
     #[IsGranted('ROLE_USER')]
     public function edit(int $id, ManagerRegistry $doctrine, Request $request): Response
     {
-        try
-        {
+        try {
             $post = $doctrine->getRepository(Post::class)->find($id);
-            if (!$post)
-			{
-				$this->addFlash('error', 'Erreur, le post que vous cherchez n\'existe pas ou plus.');
-				return $this->redirectToRoute('e01_welcome');
-			}
+            if (!$post) {
+                $this->addFlash('error', 'Erreur, le post que vous cherchez n\'existe pas ou plus.');
+                return $this->redirectToRoute('e01_welcome');
+            }
             $user = $this->getUser();
             $userId = $user->getId();
-			$postAuthorId = $post->getAuthor()->getId();
-			if ($postAuthorId !== $userId)
-			{
-				$this->addFlash('error', "Erreur, tu ne peux modifier uniquement tes propres posts.");
-                return $this->redirectToRoute('e03_read_post_details', ['id' => $id]);
-			}
-            else
-            {
-                $form = $this->createForm(PostType::class, $post);
-                $form->handleRequest($request);
-                
-                if ($form->isSubmitted() && $form->isValid())
-                {
-                    $post->setLastEditedBy($user);
-                    $post->setLastEditedAt(new DateTimeImmutable());
+            $postAuthorId = $post->getAuthor()->getId();
+            $rep = $user->getReputation(); // si bug de réputation, passer par SQL ici
 
-                    $em = $doctrine->getManager();
-                    $em->flush();
-                    $this->addFlash('success', 'Post modifié avec succès.');
-                    return $this->redirectToRoute('e03_read_post_details', ['id' => $id]);
-                }
-                return $this->render('e06/edit_post.html.twig', [
-                    'post' => $post,
-                    'form' => $form->createView(),
-                ]);
+            $isAdmin = in_array('ROLE_ADMIN', $user->getRoles(), true);
+            $canEdit = ($postAuthorId === $userId) || $isAdmin || ($rep >= 9);
+
+            if (!$canEdit) {
+                $this->addFlash('error', "Erreur, tu ne peux modifier que tes propres posts, ou il te faut 9 de réputation, ou être admin.");
+                return $this->redirectToRoute('e03_read_post_details', ['id' => $id]);
             }
-        }
-        catch (Exception $e)
-        {
+
+            $form = $this->createForm(PostType::class, $post);
+            $form->handleRequest($request);
+
+            if ($form->isSubmitted() && $form->isValid()) {
+                $post->setLastEditedBy($user);
+                $post->setLastEditedAt(new DateTimeImmutable());
+
+                $em = $doctrine->getManager();
+                $em->flush();
+                $this->addFlash('success', 'Post modifié avec succès.');
+                return $this->redirectToRoute('e03_read_post_details', ['id' => $id]);
+            }
+            return $this->render('e06/edit_post.html.twig', [
+                'post' => $post,
+                'form' => $form->createView(),
+            ]);
+        } catch (Exception $e) {
             $message = "Erreur : " . $e->getMessage();
-			$this->addFlash('error', $message);
-			return $this->redirectToRoute('e01_welcome');
+            $this->addFlash('error', $message);
+            return $this->redirectToRoute('e01_welcome');
         }
-		return $this->redirectToRoute('e03_read_post_details', ['id' => $id]);
     }
 }
 
@@ -1637,6 +1674,28 @@ class PostRepository extends ServiceEntityRepository
         parent::__construct($registry, Post::class);
     }
 
+    public function findWithAuthor(int $id): ?Post
+    {
+        return $this->createQueryBuilder('p')
+            ->addSelect('a')
+            ->join('p.author', 'a')
+            ->where('p.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findAllWithAuthorAndVotes(): array
+    {
+        return $this->createQueryBuilder('p')
+            ->addSelect('a', 'v')
+            ->join('p.author', 'a')
+            ->leftJoin('p.votes', 'v')
+            ->orderBy('p.created', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return Post[] Returns an array of Post objects
     //     */
@@ -1740,9 +1799,10 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 
 namespace App\Repository;
 
+use App\Entity\User;
 use App\Entity\Vote;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 /**
  * @extends ServiceEntityRepository<Vote>
@@ -1753,6 +1813,18 @@ class VoteRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Vote::class);
     }
+
+    public function computeReputation(User $user): int
+    {
+        $qb = $this->createQueryBuilder('v')
+            ->select('COALESCE(SUM(CASE WHEN v.isLike = true THEN 1 ELSE -1 END), 0) as rep')
+            ->join('v.post', 'p')
+            ->where('p.author = :u')
+            ->setParameter('u', $user);
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
 
 //    /**
 //     * @return Vote[] Returns an array of Vote objects
@@ -1943,6 +2015,6 @@ E06Bundle:
 
 E07Bundle:
     resource: '../src/E07Bundle/Controller'
-    type: annotation
+    type: attribute
 
 
