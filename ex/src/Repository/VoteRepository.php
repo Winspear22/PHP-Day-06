@@ -2,9 +2,10 @@
 
 namespace App\Repository;
 
+use App\Entity\User;
 use App\Entity\Vote;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 /**
  * @extends ServiceEntityRepository<Vote>
@@ -15,6 +16,18 @@ class VoteRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Vote::class);
     }
+
+    public function computeReputation(User $user): int
+    {
+        $qb = $this->createQueryBuilder('v')
+            ->select('COALESCE(SUM(CASE WHEN v.isLike = true THEN 1 ELSE -1 END), 0) as rep')
+            ->join('v.post', 'p')
+            ->where('p.author = :u')
+            ->setParameter('u', $user);
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
 
 //    /**
 //     * @return Vote[] Returns an array of Vote objects

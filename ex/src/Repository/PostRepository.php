@@ -16,6 +16,28 @@ class PostRepository extends ServiceEntityRepository
         parent::__construct($registry, Post::class);
     }
 
+    public function findWithAuthor(int $id): ?Post
+    {
+        return $this->createQueryBuilder('p')
+            ->addSelect('a')
+            ->join('p.author', 'a')
+            ->where('p.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findAllWithAuthorAndVotes(): array
+    {
+        return $this->createQueryBuilder('p')
+            ->addSelect('a', 'v')
+            ->join('p.author', 'a')
+            ->leftJoin('p.votes', 'v')
+            ->orderBy('p.created', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return Post[] Returns an array of Post objects
     //     */

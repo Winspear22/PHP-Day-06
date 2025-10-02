@@ -24,54 +24,50 @@ class E06Controller extends AbstractController
             'message' => $message
         ]);
     }
-
+    
     #[Route('/e06/post/{id}/edit', name:'e06_edit')]
     #[IsGranted('ROLE_USER')]
     public function edit(int $id, ManagerRegistry $doctrine, Request $request): Response
     {
-        try
-        {
+        try {
             $post = $doctrine->getRepository(Post::class)->find($id);
-            if (!$post)
-			{
-				$this->addFlash('error', 'Erreur, le post que vous cherchez n\'existe pas ou plus.');
-				return $this->redirectToRoute('e01_welcome');
-			}
+            if (!$post) {
+                $this->addFlash('error', 'Erreur, le post que vous cherchez n\'existe pas ou plus.');
+                return $this->redirectToRoute('e01_welcome');
+            }
             $user = $this->getUser();
             $userId = $user->getId();
-			$postAuthorId = $post->getAuthor()->getId();
-			if ($postAuthorId !== $userId)
-			{
-				$this->addFlash('error', "Erreur, tu ne peux modifier uniquement tes propres posts.");
-                return $this->redirectToRoute('e03_read_post_details', ['id' => $id]);
-			}
-            else
-            {
-                $form = $this->createForm(PostType::class, $post);
-                $form->handleRequest($request);
-                
-                if ($form->isSubmitted() && $form->isValid())
-                {
-                    $post->setLastEditedBy($user);
-                    $post->setLastEditedAt(new DateTimeImmutable());
+            $postAuthorId = $post->getAuthor()->getId();
+            $rep = $user->getReputation(); // si bug de réputation, passer par SQL ici
 
-                    $em = $doctrine->getManager();
-                    $em->flush();
-                    $this->addFlash('success', 'Post modifié avec succès.');
-                    return $this->redirectToRoute('e03_read_post_details', ['id' => $id]);
-                }
-                return $this->render('e06/edit_post.html.twig', [
-                    'post' => $post,
-                    'form' => $form->createView(),
-                ]);
+            $isAdmin = in_array('ROLE_ADMIN', $user->getRoles(), true);
+            $canEdit = ($postAuthorId === $userId) || $isAdmin || ($rep >= 9);
+
+            if (!$canEdit) {
+                $this->addFlash('error', "Erreur, tu ne peux modifier que tes propres posts, ou il te faut 9 de réputation, ou être admin.");
+                return $this->redirectToRoute('e03_read_post_details', ['id' => $id]);
             }
-        }
-        catch (Exception $e)
-        {
+
+            $form = $this->createForm(PostType::class, $post);
+            $form->handleRequest($request);
+
+            if ($form->isSubmitted() && $form->isValid()) {
+                $post->setLastEditedBy($user);
+                $post->setLastEditedAt(new DateTimeImmutable());
+
+                $em = $doctrine->getManager();
+                $em->flush();
+                $this->addFlash('success', 'Post modifié avec succès.');
+                return $this->redirectToRoute('e03_read_post_details', ['id' => $id]);
+            }
+            return $this->render('e06/edit_post.html.twig', [
+                'post' => $post,
+                'form' => $form->createView(),
+            ]);
+        } catch (Exception $e) {
             $message = "Erreur : " . $e->getMessage();
-			$this->addFlash('error', $message);
-			return $this->redirectToRoute('e01_welcome');
+            $this->addFlash('error', $message);
+            return $this->redirectToRoute('e01_welcome');
         }
-		return $this->redirectToRoute('e03_read_post_details', ['id' => $id]);
     }
 }

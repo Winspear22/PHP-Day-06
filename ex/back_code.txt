@@ -685,7 +685,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 final class E05Controller extends AbstractController
 {
-    #[Route('/e05', name: 'e05_index')]
+    #[Route(path: '/e05', name: 'e05_index')]
     public function index(): Response
     {
         $message = "popo";
@@ -757,7 +757,7 @@ final class E05Controller extends AbstractController
 		}
 		$from = $request->query->get('from', 'welcome');
 		if ($from === 'details')
-        	return $this->redirectToRoute('e03_read_post_details', ['id' => $id]);
+			return $this->redirectToRoute('e03_read_post_details', ['id' => $id]);
 		return $this->redirectToRoute('e01_welcome');
     }
 }
@@ -775,6 +775,147 @@ namespace App\E05Bundle;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class E05Bundle extends Bundle
+{
+}
+
+
+
+────────────────────────────────────────────
+📂 src/E06Bundle/Controller
+└── 📄 E06Controller.php
+────────────────────────────────────────────
+<?php
+
+namespace App\E06Bundle\Controller;
+
+use DateTime;
+use Exception;
+use App\Entity\Post;
+use App\Form\PostType;
+use DateTimeImmutable;
+use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+
+class E06Controller extends AbstractController
+{
+    #[Route(path: '/e06', name: 'e06_index')]
+    public function index(): Response
+    {
+        $message = "popo";
+        return $this->render('e01/index.html.twig', [
+            'message' => $message
+        ]);
+    }
+
+    #[Route('/e06/post/{id}/edit', name:'e06_edit')]
+    #[IsGranted('ROLE_USER')]
+    public function edit(int $id, ManagerRegistry $doctrine, Request $request): Response
+    {
+        try
+        {
+            $post = $doctrine->getRepository(Post::class)->find($id);
+            if (!$post)
+			{
+				$this->addFlash('error', 'Erreur, le post que vous cherchez n\'existe pas ou plus.');
+				return $this->redirectToRoute('e01_welcome');
+			}
+            $user = $this->getUser();
+            $userId = $user->getId();
+			$postAuthorId = $post->getAuthor()->getId();
+			if ($postAuthorId !== $userId)
+			{
+				$this->addFlash('error', "Erreur, tu ne peux modifier uniquement tes propres posts.");
+                return $this->redirectToRoute('e03_read_post_details', ['id' => $id]);
+			}
+            else
+            {
+                $form = $this->createForm(PostType::class, $post);
+                $form->handleRequest($request);
+                
+                if ($form->isSubmitted() && $form->isValid())
+                {
+                    $post->setLastEditedBy($user);
+                    $post->setLastEditedAt(new DateTimeImmutable());
+
+                    $em = $doctrine->getManager();
+                    $em->flush();
+                    $this->addFlash('success', 'Post modifié avec succès.');
+                    return $this->redirectToRoute('e03_read_post_details', ['id' => $id]);
+                }
+                return $this->render('e06/edit_post.html.twig', [
+                    'post' => $post,
+                    'form' => $form->createView(),
+                ]);
+            }
+        }
+        catch (Exception $e)
+        {
+            $message = "Erreur : " . $e->getMessage();
+			$this->addFlash('error', $message);
+			return $this->redirectToRoute('e01_welcome');
+        }
+		return $this->redirectToRoute('e03_read_post_details', ['id' => $id]);
+    }
+}
+
+
+
+────────────────────────────────────────────
+📂 src/E06Bundle
+└── 📄 E06Bundle.php
+────────────────────────────────────────────
+<?php
+
+namespace App\E06Bundle;
+
+use Symfony\Component\HttpKernel\Bundle\Bundle;
+
+class E06Bundle extends Bundle
+{
+}
+
+
+
+────────────────────────────────────────────
+📂 src/E07Bundle/Controller
+└── 📄 E07Controller.php
+────────────────────────────────────────────
+<?php
+
+namespace App\E07Bundle\Controller;
+
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+
+class E07Controller extends AbstractController
+{
+    /**
+     * @Route("/e07bundle", name="e07bundle_index")
+     */
+    public function index(): Response
+    {
+        return new Response("Hello from E07Controller!");
+    }
+}
+
+
+
+────────────────────────────────────────────
+📂 src/E07Bundle
+└── 📄 E07Bundle.php
+────────────────────────────────────────────
+<?php
+
+namespace App\E07Bundle;
+
+use Symfony\Component\HttpKernel\Bundle\Bundle;
+
+class E07Bundle extends Bundle
 {
 }
 
@@ -841,6 +982,12 @@ class Post
 
     #[ORM\OneToMany(targetEntity: Vote::class, mappedBy: 'post', cascade: ['remove'], orphanRemoval: true)]
     private Collection $votes;
+
+    #[ORM\ManyToOne(inversedBy: 'editedPosts')]
+    private ?User $lastEditedBy = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $lastEditedAt = null;
 
     public function countLikes(): int
     {
@@ -938,6 +1085,30 @@ class Post
 
         return $this;
     }
+
+    public function getLastEditedBy(): ?User
+    {
+        return $this->lastEditedBy;
+    }
+
+    public function setLastEditedBy(?User $lastEditedBy): static
+    {
+        $this->lastEditedBy = $lastEditedBy;
+
+        return $this;
+    }
+
+    public function getLastEditedAt(): ?\DateTimeImmutable
+    {
+        return $this->lastEditedAt;
+    }
+
+    public function setLastEditedAt(?\DateTimeImmutable $lastEditedAt): static
+    {
+        $this->lastEditedAt = $lastEditedAt;
+
+        return $this;
+    }
 }
 
 
@@ -995,10 +1166,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Vote::class, mappedBy: 'user')]
     private Collection $votes;
 
+    /**
+     * @var Collection<int, Post>
+     */
+    #[ORM\OneToMany(targetEntity: Post::class, mappedBy: 'lastEditedBy')]
+    private Collection $editedPosts;
+
     public function __construct()
     {
         $this->posts = new ArrayCollection();
         $this->votes = new ArrayCollection();
+        $this->editedPosts = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -1148,6 +1326,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         foreach ($this->posts as $post)
             $reputation += $post->countLikes() - $post->countDislikes();
         return $reputation;
+    }
+
+    /**
+     * @return Collection<int, Post>
+     */
+    public function getEditedPosts(): Collection
+    {
+        return $this->editedPosts;
+    }
+
+    public function addEditedPost(Post $editedPost): static
+    {
+        if (!$this->editedPosts->contains($editedPost)) {
+            $this->editedPosts->add($editedPost);
+            $editedPost->setLastEditedBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEditedPost(Post $editedPost): static
+    {
+        if ($this->editedPosts->removeElement($editedPost)) {
+            // set the owning side to null (unless already changed)
+            if ($editedPost->getLastEditedBy() === $this) {
+                $editedPost->setLastEditedBy(null);
+            }
+        }
+
+        return $this;
     }
 }
 
@@ -1728,5 +1936,13 @@ E04Bundle:
 E05Bundle:
     resource: '../src/E05Bundle/Controller'
     type: attribute
+
+E06Bundle:
+    resource: '../src/E06Bundle/Controller'
+    type: attribute
+
+E07Bundle:
+    resource: '../src/E07Bundle/Controller'
+    type: annotation
 
 

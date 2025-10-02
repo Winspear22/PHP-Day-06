@@ -23,3 +23,7 @@ E05Bundle:
 E06Bundle:
     resource: '../src/E06Bundle/Controller'
     type: attribute
+
+E07Bundle:
+    resource: '../src/E07Bundle/Controller'
+    type: attribute
