@@ -50,7 +50,9 @@ class Post
     private Collection $votes;
 
     #[ORM\ManyToOne(inversedBy: 'editedPosts')]
+    #[ORM\JoinColumn(onDelete: 'SET NULL', nullable: true)]
     private ?User $lastEditedBy = null;
+
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $lastEditedAt = null;
